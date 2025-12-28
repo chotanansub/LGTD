@@ -1,0 +1,83 @@
+{
+  "dataset": {
+    "name": "synth8",
+    "path": "data/synthetic/datasets/synth8_data.json",
+    "trend_type": "inverted_v",
+    "period_type": "variable",
+    "period": "variable"
+  },
+  "models": {
+    "LGTD": {
+      "enabled": true,
+      "params": {
+        "window_size": 3,
+        "error_percentile": 50,
+        "trend_selection": "auto",
+        "lowess_frac": 0.1,
+        "threshold_r2": 0.92,
+        "verbose": false
+      }
+    },
+    "LGTD_Linear": {
+      "enabled": true,
+      "params": {
+        "window_size": 3,
+        "error_percentile": 50,
+        "trend_selection": "linear",
+        "verbose": false
+      }
+    },
+    "LGTD_LOWESS": {
+      "enabled": true,
+      "params": {
+        "window_size": 3,
+        "error_percentile": 50,
+        "trend_selection": "lowess",
+        "lowess_frac": 0.1,
+        "verbose": false
+      }
+    },
+    "STL": {
+      "enabled": true,
+      "params": {
+        "period": 120,
+        "seasonal": 13,
+        "trend": null,
+        "robust": false
+      }
+    },
+    "RobustSTL": {
+      "enabled": false,
+      "params": {
+        "period": 120,
+        "reg1": 10.0,
+        "reg2": 0.5,
+        "K": 2,
+        "H": 5,
+        "dn1": 1.0,
+        "dn2": 1.0,
+        "ds1": 50.0,
+        "ds2": 1.0
+      }
+    },
+    "ASTD": {
+      "enabled": false,
+      "params": {
+        "period": 120,
+        "alpha": 0.1,
+        "beta": 0.1
+      }
+    }
+  },
+  "evaluation": {
+    "metrics": [
+      "mse",
+      "mae",
+      "rmse",
+      "correlation",
+      "psnr"
+    ],
+    "save_plots": true,
+    "plot_dir": "results/synthetic/plots/synth8"
+  }
+}

@@ -1,0 +1,13 @@
+# Include core requirements
+-r requirements.txt
+
+# Baseline methods
+statsmodels>=0.13.0
+stldecompose>=0.0.5
+
+# Development and experimentation tools
+pytest>=7.0.0
+pytest-cov>=3.0.0
+black>=22.0.0
+jupyter>=1.0.0
+ipykernel>=6.0.0

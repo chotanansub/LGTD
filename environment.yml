@@ -1,0 +1,34 @@
+name: lgtd
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Python
+  - python>=3.8
+
+  # Core dependencies
+  - numpy>=1.21.0
+  - pandas>=1.3.0
+  - scipy>=1.7.0
+  - scikit-learn>=1.0.0
+  - matplotlib>=3.4.0
+  - seaborn>=0.11.0
+  - pyyaml>=5.4.0
+
+  # Experiment dependencies
+  - statsmodels>=0.13.0
+  - jupyter>=1.0.0
+  - ipykernel>=6.0.0
+  - notebook
+
+  # Development tools
+  - pytest>=7.0.0
+  - pytest-cov>=3.0.0
+  - black>=22.0.0
+  - flake8>=4.0.0
+
+  # Pip dependencies (packages not available in conda)
+  - pip
+  - pip:
+    - stldecompose>=0.0.5
+    - git+https://github.com/chotanansub/autotrend.git
