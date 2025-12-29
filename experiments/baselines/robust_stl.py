@@ -52,7 +52,7 @@ class RobustSTLDecomposer:
     def _check_availability(self) -> bool:
         """Check if RobustSTL is available."""
         try:
-            from RobustSTL import RobustSTL
+            from experiments.baselines.RobustSTL.RobustSTL import RobustSTL
             return True
         except ImportError:
             return False
@@ -73,7 +73,7 @@ class RobustSTLDecomposer:
                 "Clone from: https://github.com/LeeDoYup/RobustSTL.git"
             )
 
-        from RobustSTL import RobustSTL
+        from experiments.baselines.RobustSTL.RobustSTL import RobustSTL
 
         try:
             result = RobustSTL(

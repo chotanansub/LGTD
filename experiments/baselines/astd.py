@@ -27,7 +27,7 @@ class ASTDDecomposer:
     def _check_availability(self) -> bool:
         """Check if ASTD is available."""
         try:
-            from src.online_decomposition.ASTD import ASTD
+            from experiments.baselines.ASTD.ASTD import ASTD
             return True
         except ImportError:
             return False
@@ -48,7 +48,7 @@ class ASTDDecomposer:
                 "Clone from: https://github.com/thanapol2/ASTD_ECMLPKDD.git"
             )
 
-        from src.online_decomposition.ASTD import ASTD
+        from experiments.baselines.ASTD.ASTD import ASTD
 
         window_size = len(data)
 
