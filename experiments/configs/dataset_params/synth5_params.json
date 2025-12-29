@@ -61,11 +61,39 @@
       }
     },
     "ASTD": {
-      "enabled": false,
+      "enabled": true,
       "params": {
         "period": 120,
         "alpha": 0.1,
         "beta": 0.1
+      }
+    },
+    "FastRobustSTL": {
+      "enabled": true,
+      "params": {
+        "period": 60,
+        "reg1": 5.0,
+        "reg2": 20.0,
+        "K": 1,
+        "H": 3,
+        "dn1": 1.5,
+        "dn2": 1.5,
+        "ds1": 75.0,
+        "ds2": 1.5,
+        "max_iter": 800
+      }
+    },
+    "STR": {
+      "enabled": true,
+      "params": {
+        "seasonal_periods": [
+          120
+        ],
+        "trend_lambda": 1000.0,
+        "seasonal_lambda": 100.0,
+        "robust": false,
+        "auto_params": false,
+        "n_trials": 20
       }
     }
   },
