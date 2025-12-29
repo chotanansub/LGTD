@@ -41,11 +41,12 @@ data/synthetic/datasets/*.pkl
 data/real_world/raw/*.csv
 data/preprocessed/*.pkl
 
-# Results (keep structure, ignore large files)
+# Results (keep structure, ignore large files and experiment CSVs)
 results/**/*.pkl
 results/**/*.npy
 results/**/*.png
 results/**/*.pdf
+results/**/*.csv
 !results/**/.gitkeep
 
 # OS
@@ -63,5 +64,28 @@ docs/_build/
 # Reference files (temporary)
 ref/
 
-# Initialization guide
+# Development/temporary documentation (not for public view)
 init.md
+BASELINE_IMPLEMENTATION.md
+BASELINE_INTEGRATION_COMPLETE.md
+CONFIG_SYNC_SYSTEM.md
+EXPERIMENT_SYSTEM_COMPLETE.md
+EXPERIMENT_SYSTEM_FINAL.md
+SYNC_SYSTEM_COMPLETE.md
+VALIDATION_RESULTS.md
+VARIABLE_PERIOD_RESULTS.md
+VARIABLE_PERIOD_UPDATE.md
+PLOT_LEGEND_FIX.md
+QUICK_START.md
+experiments/CONFIG_SYNC_GUIDE.md
+experiments/EXPERIMENT_GUIDE.md
+data/synthetic/datasets/JSON_USAGE_GUIDE.md
+data/synthetic/datasets/LOCATION_INFO.md
+
+# Temporary scripts
+check_plot_legends.py
+
+# Baseline installation artifacts (already installed in env)
+experiments/baselines/RobustSTL/
+experiments/baselines/ASTD/
+scripts/install_baselines.sh
