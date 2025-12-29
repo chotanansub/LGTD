@@ -17,24 +17,36 @@ python experiments/scripts/run_experiments.py
 
 ```bash
 # Test LGTD on linear datasets
-python experiments/scripts/run_experiments.py \
+python experiments/runners/experiment_runner.py \
     --datasets synth1 synth4 synth7 \
     --models LGTD
 
 # Compare LGTD variants
-python experiments/scripts/run_experiments.py \
+python experiments/runners/experiment_runner.py \
     --models LGTD LGTD_Linear LGTD_LOWESS
 
 # Run single experiment
-python experiments/scripts/run_experiments.py \
+python experiments/runners/experiment_runner.py \
     --datasets synth1 \
     --models LGTD
+
+# Run STR on all datasets
+python experiments/runners/experiment_runner.py --models STR
+
+# Run all baselines
+python experiments/runners/experiment_runner.py \
+    --models STL STR FastRobustSTL ASTD
 ```
 
 ### 3. Analyze Results
 
 ```bash
-python experiments/scripts/analyze_results.py results/synthetic/experiment_results_*.csv
+# Generate LaTeX tables
+python scripts/results_to_latex.py              # Long format (vertical)
+python scripts/results_to_latex_wide.py         # Wide format (landscape)
+
+# Analyze results programmatically
+python experiments/scripts/analyze_results.py results/synthetic/experiment_results.csv
 ```
 
 ---
@@ -78,7 +90,10 @@ Plots are automatically saved to `results/synthetic/plots/{dataset}/`
 
 ### ✅ Results Tracking
 
-All results saved to timestamped CSV files in `results/synthetic/`
+- **Single master CSV**: `results/synthetic/experiment_results.csv`
+- Automatically updates existing rows or inserts new results
+- Sorted by dataset and model for easy reading
+- Historical timestamped CSVs archived in `results/synthetic/records/`
 
 ---
 
@@ -89,9 +104,11 @@ All results saved to timestamped CSV files in `results/synthetic/`
 | **LGTD** | Auto-selection (linear/LOWESS) | ✅ Ready |
 | **LGTD_Linear** | Force linear trend | ✅ Ready |
 | **LGTD_LOWESS** | Force LOWESS trend | ✅ Ready |
-| **STL** | Seasonal-Trend Decomposition | ✅ Ready |
-| **RobustSTL** | Robust STL variant | ⏳ Not implemented |
-| **ASTD** | Adaptive STL | ⏳ Not implemented |
+| **STL** | Seasonal-Trend Decomposition (statsmodels) | ✅ Ready |
+| **STR** | Seasonal-Trend decomposition using Regression | ✅ Ready |
+| **FastRobustSTL** | Fast Robust STL variant (frstl) | ✅ Ready |
+| **ASTD** | Adaptive Seasonal-Trend Decomposition | ✅ Ready |
+| **RobustSTL** | Robust STL (RobustSTL package) | ✅ Available locally |
 
 ---
 
@@ -117,6 +134,7 @@ All results saved to timestamped CSV files in `results/synthetic/`
 experiments/
 ├── README.md                      # This file
 ├── EXPERIMENT_GUIDE.md            # Detailed guide
+├── CONFIG_SYNC_GUIDE.md           # Dataset config sync guide
 ├── configs/
 │   ├── dataset_params/            # JSON parameter files
 │   │   ├── synth1_params.json
@@ -124,17 +142,24 @@ experiments/
 │   │   └── ...
 │   └── synthetic_experiments.yaml # Legacy config
 ├── runners/
-│   ├── experiment_runner.py       # Main experiment engine
+│   ├── experiment_runner.py       # Main experiment engine ⭐
 │   ├── synthetic_runner.py        # Legacy runner
 │   └── base_experiment.py
 ├── scripts/
 │   ├── run_experiments.py         # CLI entry point
 │   ├── analyze_results.py         # Results analysis
+│   ├── sync_dataset_configs.py    # Config synchronization
 │   └── run_synthetic.py           # Legacy script
-└── baselines/
-    ├── stl.py                     # STL baseline
-    ├── robust_stl.py              # RobustSTL (TODO)
-    └── astd.py                    # ASTD (TODO)
+├── baselines/
+│   ├── STR/                       # STR implementation (built-in)
+│   ├── str_decomposer.py          # STR wrapper
+│   ├── fast_robust_stl.py         # FastRobustSTL wrapper
+│   ├── astd.py                    # ASTD wrapper
+│   ├── robust_stl.py              # RobustSTL wrapper
+│   ├── RobustSTL/                 # RobustSTL (cloned, not tracked)
+│   └── ASTD/                      # ASTD (cloned, not tracked)
+└── utils/
+    └── reproducibility.py         # Reproducibility utilities
 ```
 
 ---
@@ -145,32 +170,35 @@ experiments/
 
 ```bash
 # Run LGTD on all datasets
-python experiments/scripts/run_experiments.py --models LGTD
+python experiments/runners/experiment_runner.py --models LGTD
 
 # Check results
 python -c "
 import pandas as pd
-df = pd.read_csv('results/synthetic/experiment_results_*.csv')
+df = pd.read_csv('results/synthetic/experiment_results.csv')
 print(df[['dataset', 'trend_type', 'selected_method', 'mse_trend']])
 "
 ```
 
 Expected output: LGTD should select 'linear' for synth1, synth4, synth7
 
-### Example 2: Compare LGTD vs STL
+### Example 2: Compare LGTD vs Baselines
 
 ```bash
 # Run comparison
-python experiments/scripts/run_experiments.py --models LGTD STL
+python experiments/runners/experiment_runner.py --models LGTD STL STR ASTD
+
+# Generate LaTeX table
+python scripts/results_to_latex_wide.py
 
 # Analyze
-python experiments/scripts/analyze_results.py results/synthetic/experiment_results_*.csv
+python experiments/scripts/analyze_results.py results/synthetic/experiment_results.csv
 ```
 
 ### Example 3: Test on Linear Datasets Only
 
 ```bash
-python experiments/scripts/run_experiments.py \
+python experiments/runners/experiment_runner.py \
     --datasets synth1 synth4 synth7 \
     --models LGTD LGTD_Linear
 ```
@@ -178,14 +206,25 @@ python experiments/scripts/run_experiments.py \
 ### Example 4: Full Experiment Suite
 
 ```bash
-# Run all LGTD variants on all datasets
-python experiments/scripts/run_experiments.py \
-    --models LGTD LGTD_Linear LGTD_LOWESS STL
+# Run all models on all datasets
+python experiments/runners/experiment_runner.py \
+    --models LGTD STL STR FastRobustSTL ASTD
 
 # This will:
-# - Test 4 models × 9 datasets = 36 experiments
-# - Save 36 plots
-# - Generate comprehensive CSV results
+# - Test 5 models × 9 datasets = 45 experiments
+# - Save 45 plots
+# - Update experiment_results.csv with all results
+# - Automatic reproducibility with GLOBAL_SEED=69
+```
+
+### Example 5: Run STR on All Datasets
+
+```bash
+# Run STR experiments
+python experiments/runners/experiment_runner.py --models STR
+
+# Generate wide-format table
+python scripts/results_to_latex_wide.py
 ```
 
 ---
@@ -242,7 +281,7 @@ Edit `experiments/configs/dataset_params/synth1_params.json`:
 
 ### Results CSV
 
-Location: `results/synthetic/experiment_results_{timestamp}.csv`
+Location: `results/synthetic/experiment_results.csv`
 
 Columns:
 - `dataset`: Dataset name
@@ -333,7 +372,7 @@ for thresh in thresholds:
 # Make sure you're in project root
 cd /path/to/LGTD
 source env/bin/activate
-python experiments/scripts/run_experiments.py
+python experiments/runners/experiment_runner.py
 ```
 
 ### No Results Saved
@@ -381,8 +420,8 @@ print(runner.available_models)
 1. **See [EXPERIMENT_GUIDE.md](EXPERIMENT_GUIDE.md)** for detailed documentation
 2. **See [CONFIG_SYNC_GUIDE.md](CONFIG_SYNC_GUIDE.md)** for dataset synchronization
 3. **View example parameter files** in `configs/dataset_params/`
-4. **Run demo experiment**: `python experiments/scripts/run_experiments.py --datasets synth1 --models LGTD`
-5. **Analyze results**: `python experiments/scripts/analyze_results.py results/synthetic/*.csv`
+4. **Run demo experiment**: `python experiments/runners/experiment_runner.py --datasets synth1 --models LGTD`
+5. **Analyze results**: `python experiments/scripts/analyze_results.py results/synthetic/experiment_results.csv`
 
 ---
 
