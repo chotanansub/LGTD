@@ -1,2 +1,0 @@
-dataset,trend_type,period_type,model,time,mse_trend,mse_seasonal,mse_residual,mae_trend,mae_seasonal,mae_residual,rmse_trend,rmse_seasonal,rmse_residual,corr_trend,corr_seasonal,corr_residual,psnr_trend,psnr_seasonal,psnr_residual,selected_method
-synth2,inverted_v,fixed,LGTD,0.11182308197021484,5.362638616792237,79.21505224839431,79.40148961803753,1.0296251502126894,7.349644121431051,7.404429981472985,2.315737164876929,8.900283829653654,8.910751349804208,0.9971446010770794,0.9864195270429692,0.021752564297355878,32.69752300332888,14.99132295677292,-7.769381365346284,lowess
