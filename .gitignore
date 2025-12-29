@@ -41,12 +41,13 @@ data/synthetic/datasets/*.pkl
 data/real_world/raw/*.csv
 data/preprocessed/*.pkl
 
-# Results (keep structure, ignore large files and experiment CSVs)
+# Results (keep structure, ignore large files and timestamped experiment CSVs)
 results/**/*.pkl
 results/**/*.npy
 results/**/*.png
 results/**/*.pdf
-results/**/*.csv
+results/**/records/*.csv
+!results/**/experiment_results.csv
 !results/**/.gitkeep
 
 # OS
@@ -62,7 +63,7 @@ htmlcov/
 docs/_build/
 
 # Reference files (temporary)
-ref/
+
 
 # Development/temporary documentation (not for public view)
 init.md
@@ -79,6 +80,8 @@ PLOT_LEGEND_FIX.md
 QUICK_START.md
 REPOSITORY_STRUCTURE.md
 GITHUB_CLEANUP_SUMMARY.md
+STR_MODULE_UPDATE.md
+STR_PARAMETER_FIX.md
 experiments/CONFIG_SYNC_GUIDE.md
 experiments/EXPERIMENT_GUIDE.md
 data/synthetic/datasets/JSON_USAGE_GUIDE.md
