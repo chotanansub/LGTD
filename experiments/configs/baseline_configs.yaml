@@ -1,0 +1,73 @@
+# Baseline method configurations for different dataset types
+
+fixed_period:
+  stl:
+    period: 120
+    seasonal: 7
+
+  robust_stl:
+    period: 120
+    reg1: 5.0
+    reg2: 0.1
+    K: 1
+    H: 2
+    dn1: 2.0
+    dn2: 2.0
+    ds1: 20.0
+    ds2: 2.0
+
+  astd:
+    seasonality_smoothing: 0.7
+
+  lgtd:
+    window_size: 3
+    error_percentile: 50
+    trend_selection: "auto"
+
+transitive_period:
+  stl:
+    period: 90
+    seasonal: 7
+
+  robust_stl:
+    period: 90
+    reg1: 4.0
+    reg2: 0.15
+    K: 1
+    H: 2
+    dn1: 2.0
+    dn2: 2.0
+    ds1: 25.0
+    ds2: 2.0
+
+  astd:
+    seasonality_smoothing: 0.7
+
+  lgtd:
+    window_size: 3
+    error_percentile: 50
+    trend_selection: "auto"
+
+variable_period:
+  stl:
+    period: 260
+    seasonal: 7
+
+  robust_stl:
+    period: 260
+    reg1: 6.0
+    reg2: 0.1
+    K: 1
+    H: 2
+    dn1: 2.5
+    dn2: 2.5
+    ds1: 30.0
+    ds2: 2.5
+
+  astd:
+    seasonality_smoothing: 0.7
+
+  lgtd:
+    window_size: 2
+    error_percentile: 50
+    trend_selection: "auto"

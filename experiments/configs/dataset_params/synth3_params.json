@@ -1,0 +1,149 @@
+{
+  "dataset": {
+    "name": "synth3",
+    "path": "data/synthetic/datasets/synth3_data.json",
+    "trend_type": "piecewise",
+    "period_type": "fixed",
+    "period": 120
+  },
+  "models": {
+    "LGTD": {
+      "enabled": true,
+      "params": {
+        "window_size": 3,
+        "error_percentile": 30,
+        "trend_selection": "auto",
+        "lowess_frac": 0.2,
+        "threshold_r2": 0.85,
+        "verbose": false
+      },
+      "model_type": "batch"
+    },
+    "LGTD_Linear": {
+      "enabled": true,
+      "params": {
+        "window_size": 3,
+        "error_percentile": 50,
+        "trend_selection": "linear",
+        "verbose": false
+      },
+      "model_type": "batch"
+    },
+    "LGTD_LOWESS": {
+      "enabled": true,
+      "params": {
+        "window_size": 3,
+        "error_percentile": 50,
+        "trend_selection": "lowess",
+        "lowess_frac": 0.1,
+        "verbose": false
+      },
+      "model_type": "batch"
+    },
+    "STL": {
+      "enabled": true,
+      "params": {
+        "period": 120,
+        "seasonal": 13,
+        "trend": null,
+        "robust": false
+      },
+      "model_type": "batch"
+    },
+    "RobustSTL": {
+      "enabled": false,
+      "params": {
+        "period": 120,
+        "reg1": 10.0,
+        "reg2": 0.5,
+        "K": 2,
+        "H": 5,
+        "dn1": 1.0,
+        "dn2": 1.0,
+        "ds1": 50.0,
+        "ds2": 1.0
+      },
+      "model_type": "batch"
+    },
+    "ASTD": {
+      "enabled": true,
+      "params": {
+        "period": 120,
+        "alpha": 0.1,
+        "beta": 0.1
+      },
+      "model_type": "batch"
+    },
+    "FastRobustSTL": {
+      "enabled": true,
+      "params": {
+        "period": 120,
+        "reg1": 1.0,
+        "reg2": 10.0,
+        "K": 2,
+        "H": 5,
+        "dn1": 1.0,
+        "dn2": 1.0,
+        "ds1": 50.0,
+        "ds2": 1.0,
+        "max_iter": 1000
+      },
+      "model_type": "batch"
+    },
+    "STR": {
+      "enabled": true,
+      "params": {
+        "seasonal_periods": [
+          120
+        ],
+        "trend_lambda": 100.0,
+        "seasonal_lambda": 1.0,
+        "robust": false,
+        "auto_params": false,
+        "n_trials": 20
+      },
+      "model_type": "batch"
+    },
+    "ASTD_Online": {
+      "enabled": true,
+      "model_type": "online",
+      "params": {
+        "seasonality_smoothing": 0.7,
+        "init_window_size": 300,
+        "init_ratio": 0.3
+      }
+    },
+    "OnlineSTL": {
+      "enabled": true,
+      "model_type": "online",
+      "params": {
+        "period": 120,
+        "periods": [
+          120
+        ],
+        "lam": 0.3,
+        "init_window_ratio": 0.3
+      }
+    },
+    "OneShotSTL": {
+      "enabled": true,
+      "model_type": "online",
+      "params": {
+        "period": 120,
+        "shift_window": 0,
+        "init_ratio": 0.3
+      }
+    }
+  },
+  "evaluation": {
+    "metrics": [
+      "mse",
+      "mae",
+      "rmse",
+      "correlation",
+      "psnr"
+    ],
+    "save_plots": true,
+    "plot_dir": "results/synthetic/plots/synth3"
+  }
+}

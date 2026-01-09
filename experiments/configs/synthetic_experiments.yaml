@@ -1,0 +1,164 @@
+experiment:
+  name: lgtd_synthetic_evaluation
+  description: Synthetic data experiments for LGTD method validation
+  output_dir: experiments/results/synthetic
+datasets:
+- name: synth1_linear_fixed
+  trend_type: linear
+  seasonality_type: fixed
+  seasonal_params:
+    amplitude: 50.0
+    period: 120
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth2_inverted_v_fixed
+  trend_type: inverted_v
+  seasonality_type: fixed
+  seasonal_params:
+    amplitude: 50.0
+    period: 60
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth3_piecewise_fixed
+  trend_type: piecewise
+  seasonality_type: fixed
+  seasonal_params:
+    amplitude: 80.0
+    period: 120
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth4_linear_transitive
+  trend_type: linear
+  seasonality_type: transitive
+  seasonal_params:
+    amplitude: 50.0
+    main_period: 120
+    transition_period: 60
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth5_inverted_v_transitive
+  trend_type: inverted_v
+  seasonality_type: transitive
+  seasonal_params:
+    amplitude: 50.0
+    main_period: 60
+    transition_period: 120
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth6_piecewise_transitive
+  trend_type: piecewise
+  seasonality_type: transitive
+  seasonal_params:
+    amplitude: 80.0
+    main_period: 120
+    transition_period: 60
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth7_linear_variable
+  trend_type: linear
+  seasonality_type: variable
+  seasonal_params:
+    amplitude: 50.0
+    periods:
+    - 100
+    - 300
+    - 150
+    - 400
+    - 120
+    - 350
+    - 180
+    - 450
+    - 200
+    - 250
+    - 140
+    - 380
+    - 220
+    - 500
+    - 160
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth8_inverted_v_variable
+  trend_type: inverted_v
+  seasonality_type: variable
+  seasonal_params:
+    amplitude: 50.0
+    periods:
+    - 100
+    - 300
+    - 150
+    - 400
+    - 120
+    - 350
+    - 180
+    - 450
+    - 200
+    - 250
+    - 140
+    - 380
+    - 220
+    - 500
+    - 160
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth9_piecewise_variable
+  trend_type: piecewise
+  seasonality_type: variable
+  seasonal_params:
+    amplitude: 80.0
+    periods:
+    - 100
+    - 300
+    - 150
+    - 400
+    - 120
+    - 350
+    - 180
+    - 450
+    - 200
+    - 250
+    - 140
+    - 380
+    - 220
+    - 500
+    - 160
+  n_samples: 2000
+  noise_std: 1.0
+methods:
+  lgtd:
+    enabled: true
+    params:
+      window_size: 3
+      error_percentile: 50
+      trend_selection: auto
+  stl:
+    enabled: true
+    params:
+      period: 120
+      seasonal: 7
+  robust_stl:
+    enabled: true
+    params:
+      period: 120
+      reg1: 5.0
+      reg2: 0.1
+      K: 1
+      H: 2
+      dn1: 2.0
+      dn2: 2.0
+      ds1: 20.0
+      ds2: 2.0
+  astd:
+    enabled: true
+    params:
+      seasonality_smoothing: 0.7
+metrics:
+- mse
+- mae
+- rmse
+- correlation
+- psnr
+output:
+  save_decompositions: true
+  save_visualizations: true
+  save_metrics: true
+  results_format: csv

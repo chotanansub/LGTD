@@ -1,0 +1,56 @@
+
+\documentclass{article}
+
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[margin=0.3in, landscape]{geometry}
+\usepackage{multirow}
+
+\begin{document}
+
+\begin{table*}[htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.2}
+\caption{Decomposition Error Comparison Across Synthetic Datasets}
+\label{tab:decomposition_results}
+\begin{tabular}{llcccccccccccccccccc}
+\toprule
+& & \multicolumn{6}{c}{\textbf{Fixed Period}} & \multicolumn{6}{c}{\textbf{Transitive Period}} & \multicolumn{6}{c}{\textbf{Variable Period}} \\
+\cmidrule(lr){3-8} \cmidrule(lr){9-14} \cmidrule(lr){15-20}
+\textbf{Trend} & \textbf{Model} & \multicolumn{2}{c}{\textbf{Trend}} & \multicolumn{2}{c}{\textbf{Seasonal}} & \multicolumn{2}{c}{\textbf{Residual}} & \multicolumn{2}{c}{\textbf{Trend}} & \multicolumn{2}{c}{\textbf{Seasonal}} & \multicolumn{2}{c}{\textbf{Residual}} & \multicolumn{2}{c}{\textbf{Trend}} & \multicolumn{2}{c}{\textbf{Seasonal}} & \multicolumn{2}{c}{\textbf{Residual}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10} \cmidrule(lr){11-12} \cmidrule(lr){13-14} \cmidrule(lr){15-16} \cmidrule(lr){17-18} \cmidrule(lr){19-20}
+& & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} \\
+\midrule
+\multirow{8}{*}{\rotatebox{90}{\textbf{Linear}}} & STL & \textbf{0.01} & \textbf{0.08} & \textbf{0.15} & \textbf{0.30} & \textbf{0.16} & \textbf{0.31} & 4.87 & \textbf{1.21} & 216.54 & 10.27 & 213.14 & 10.27 & 173.39 & 8.84 & 1193.81 & 30.64 & 762.52 & 23.43 \\
+ & STR & 1.57 & 1.12 & 2.31 & 1.25 & 0.66 & 0.76 & 712.75 & 23.11 & 973.35 & 27.16 & 60.36 & 5.56 & 1205.26 & 31.03 & 1255.58 & 31.61 & 1.15 & 0.88 \\
+ & FastRobustSTL & 0.08 & 0.22 & 1.29 & 0.88 & 1.29 & 0.89 & 852.32 & 25.36 & 861.03 & 25.49 & \textbf{1.38} & \textbf{0.87} & 1254.84 & 31.44 & 1279.43 & 31.79 & \textbf{1.13} & \textbf{0.88} \\
+ & ASTD & 65.89 & 7.60 & 16.52 & 3.54 & 21.86 & 4.26 & 64.56 & 7.53 & 57.93 & 5.44 & 63.25 & 6.00 & 75.18 & 8.39 & 131.11 & 9.07 & 144.36 & 9.71 \\
+ & ASTD\(_{Online}\) & 3.33 & 1.56 & 57.75 & 6.83 & 59.08 & 6.89 & 6.59 & 2.03 & 98.09 & 7.99 & 99.38 & 8.02 & 29.03 & 4.20 & 197.64 & 12.39 & 211.32 & 12.73 \\
+ & OnlineSTL & 3.26 & 1.23 & 3.00 & 1.44 & 3.66 & 1.61 & 4.16 & 1.48 & \textbf{12.02} & \textbf{2.57} & 11.89 & 2.58 & 25.09 & 4.06 & 36.60 & 5.01 & 37.06 & 5.24 \\
+ & OneShotSTL & 18.34 & 4.10 & 14.33 & 3.52 & 0.65 & 0.67 & 3160.34 & 45.65 & 3082.63 & 45.19 & 43.04 & 4.76 & 1343.95 & 29.77 & 1289.24 & 29.11 & 373.34 & 15.74 \\
+ & LGTD & 0.33 & 0.51 & 2.92 & 1.39 & 3.76 & 1.61 & \textbf{2.31} & 1.25 & 12.31 & 2.95 & 7.86 & 2.22 & \textbf{4.52} & \textbf{2.05} & \textbf{9.34} & \textbf{2.56} & 19.07 & 3.67 \\
+\midrule
+\multirow{8}{*}{\rotatebox{90}{\textbf{Inverted-V}}} & STL & 0.19 & \textbf{0.17} & \textbf{0.13} & \textbf{0.28} & 0.31 & \textbf{0.36} & \textbf{3.52} & \textbf{1.02} & 215.46 & 10.26 & 213.52 & 10.22 & 171.01 & 8.69 & 1194.00 & 30.64 & 775.15 & 23.61 \\
+ & STR & 2.47 & 1.40 & 3.07 & 1.51 & \textbf{0.26} & 0.43 & 354.59 & 15.68 & 991.10 & 27.44 & 231.39 & 13.27 & 1085.66 & 29.34 & 1221.65 & 31.16 & 13.63 & 2.18 \\
+ & FastRobustSTL & \textbf{0.12} & 0.27 & 1.39 & 0.90 & 1.37 & 0.90 & 248.05 & 8.63 & 308.92 & 9.69 & 30.28 & \textbf{2.22} & 1209.79 & 30.78 & 1218.81 & 30.91 & \textbf{1.56} & \textbf{0.97} \\
+ & ASTD & 1444.61 & 29.25 & 889.69 & 23.40 & 177.45 & 10.22 & 1445.19 & 29.26 & 953.89 & 23.51 & 234.65 & 10.90 & 1493.38 & 29.80 & 847.61 & 22.69 & 312.51 & 12.69 \\
+ & ASTD\(_{Online}\) & 189.79 & 9.47 & 57.69 & 5.57 & 73.59 & 6.36 & 215.64 & 10.08 & 118.69 & 7.60 & 141.53 & 8.75 & 178.10 & 9.04 & 223.52 & 13.02 & 270.49 & 14.07 \\
+ & OnlineSTL & 51.94 & 4.73 & 33.68 & 4.12 & 22.05 & 3.80 & 289.68 & 13.39 & 180.82 & 10.00 & 70.99 & 7.04 & 306.17 & 14.04 & 188.01 & 10.43 & 81.13 & 7.58 \\
+ & OneShotSTL & 36.38 & 4.75 & 32.25 & 4.77 & 2.26 & 1.25 & 3827.19 & 51.72 & 3451.76 & 48.73 & 45.60 & 4.79 & 1454.88 & 31.43 & 1368.43 & 29.70 & 379.35 & 15.75 \\
+ & LGTD & 3.27 & 0.89 & 17.60 & 3.46 & 15.67 & 3.40 & 7.77 & 1.44 & \textbf{29.50} & \textbf{4.09} & \textbf{19.04} & 3.42 & \textbf{41.32} & \textbf{4.26} & \textbf{46.32} & \textbf{4.64} & 18.29 & 3.62 \\
+\midrule
+\multirow{8}{*}{\rotatebox{90}{\textbf{Piecewise}}} & STL & 0.68 & 0.35 & \textbf{0.18} & \textbf{0.33} & \textbf{0.81} & \textbf{0.57} & \textbf{13.13} & \textbf{2.10} & 554.08 & 16.42 & 545.84 & 16.44 & 610.94 & 17.82 & 3162.72 & 50.17 & 1466.35 & 32.88 \\
+ & STR & 4.00 & 1.79 & 5.98 & 2.04 & 1.60 & 1.19 & 1826.80 & 37.00 & 2491.78 & 43.46 & 154.09 & 8.89 & 3085.99 & 49.64 & 3214.47 & 50.58 & 2.95 & 1.41 \\
+ & FastRobustSTL & \textbf{0.16} & \textbf{0.31} & 1.61 & 0.98 & 1.56 & 0.97 & 2263.08 & 41.34 & 2281.51 & 41.51 & \textbf{2.21} & \textbf{1.00} & 3212.23 & 50.34 & 3261.47 & 50.78 & \textbf{1.95} & \textbf{1.13} \\
+ & ASTD & 1002.99 & 26.29 & 430.33 & 17.51 & 206.04 & 13.07 & 999.21 & 26.20 & 539.80 & 19.59 & 312.93 & 14.61 & 667.88 & 21.07 & 587.83 & 19.09 & 492.25 & 19.26 \\
+ & ASTD\(_{Online}\) & 137.19 & 9.39 & 165.08 & 11.24 & 190.42 & 11.64 & 166.56 & 10.42 & 273.69 & 13.53 & 289.34 & 13.73 & \textbf{216.49} & \textbf{11.98} & 526.43 & 19.93 & 567.98 & 20.50 \\
+ & OnlineSTL & 184.95 & 11.65 & 99.54 & 8.01 & 39.06 & 5.10 & 210.70 & 12.60 & 137.57 & 9.54 & 60.90 & 6.34 & 252.51 & 13.37 & \textbf{191.99} & \textbf{10.94} & 126.94 & 9.31 \\
+ & OneShotSTL & 18.31 & 3.30 & 12.95 & 2.73 & 2.27 & 1.22 & 7930.55 & 70.18 & 7769.40 & 70.18 & 63.66 & 5.78 & 5437.39 & 60.76 & 4724.23 & 55.85 & 678.51 & 19.82 \\
+ & LGTD & 11.00 & 2.17 & 16.60 & 3.23 & 8.99 & 2.46 & 31.55 & 3.44 & \textbf{51.30} & \textbf{5.12} & 11.61 & 2.86 & 393.75 & 16.57 & 362.41 & 16.14 & 86.97 & 8.69 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\end{document}
