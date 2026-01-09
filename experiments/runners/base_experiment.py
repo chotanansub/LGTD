@@ -147,10 +147,16 @@ class BaseExperiment:
             results: Results dictionary
             format: Output format ('csv' or 'json')
         """
-        output_path = self.output_dir / f"{dataset_name}_results.{format}"
+        # Create subdirectories for organized storage
+        # Save metrics separately from decomposition components
+        metrics_dir = self.output_dir / "metrics"
+        metrics_dir.mkdir(parents=True, exist_ok=True)
 
         if format == 'csv' and 'evaluation' in results:
+            # Save evaluation metrics as CSV
+            output_path = metrics_dir / f"{dataset_name}_metrics.{format}"
             results['evaluation'].to_csv(output_path, index=False)
+            print(f"✓ Metrics saved to: {output_path}")
         elif format == 'json':
             import json
             # Convert numpy arrays to lists for JSON serialization
@@ -166,10 +172,10 @@ class BaseExperiment:
                 else:
                     serializable_results[key] = value
 
+            output_path = metrics_dir / f"{dataset_name}_metrics.{format}"
             with open(output_path, 'w') as f:
                 json.dump(serializable_results, f, indent=2)
-
-        print(f"✓ Results saved to: {output_path}")
+            print(f"✓ Metrics saved to: {output_path}")
 
     def print_summary(
         self,

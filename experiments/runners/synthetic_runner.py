@@ -8,7 +8,7 @@ from typing import Dict, Any
 
 from experiments.runners.base_experiment import BaseExperiment
 from data.synthetic.generators import generate_synthetic_data
-from lgtd import LGTD
+from LGTD import LGTD
 from experiments.baselines.stl import STLDecomposer
 from experiments.baselines.robust_stl import RobustSTLDecomposer
 from experiments.baselines.astd import ASTDDecomposer
@@ -151,6 +151,59 @@ class SyntheticExperimentRunner(BaseExperiment):
             'evaluation': evaluation_df
         }
 
+    def save_decomposition_components(
+        self,
+        dataset_name: str,
+        experiment_result: Dict[str, Any]
+    ) -> None:
+        """
+        Save decomposition components for plotting.
+
+        Saves each model's decomposition as JSON in the format expected by plot_synthetic.py:
+        experiments/results/synthetic/decompositions/{dataset_name}/{model_name}.json
+
+        Args:
+            dataset_name: Name of the dataset (e.g., "synth1_linear_fixed")
+            experiment_result: Results dictionary containing 'dataset' and 'results'
+        """
+        import json
+        import re
+
+        # Extract base dataset name (synth1, synth2, etc.) from full name
+        # e.g., "synth1_linear_fixed" -> "synth1"
+        base_name = re.match(r'(synth\d+)', dataset_name)
+        if base_name:
+            short_name = base_name.group(1)
+        else:
+            short_name = dataset_name
+
+        # Create dataset subdirectory using short name
+        dataset_dir = self.output_dir / "decompositions" / short_name
+        dataset_dir.mkdir(parents=True, exist_ok=True)
+
+        dataset = experiment_result['dataset']
+        ground_truth = dataset['data']
+
+        # Save each model's decomposition
+        for model_name, result in experiment_result['results'].items():
+            if result is None:
+                continue
+
+            # Prepare data in the format expected by plot_synthetic.py
+            decomposition_data = {
+                'y': ground_truth['y'].tolist(),
+                'trend': result['trend'].tolist(),
+                'seasonal': result['seasonal'].tolist(),
+                'residual': result['residual'].tolist()
+            }
+
+            # Save as JSON
+            output_path = dataset_dir / f"{model_name}.json"
+            with open(output_path, 'w') as f:
+                json.dump(decomposition_data, f, indent=2)
+
+        print(f"✓ Decomposition components saved to: {dataset_dir}")
+
     def run_all_experiments(self) -> None:
         """Run all experiments defined in configuration."""
         print("\n" + "="*70)
@@ -163,12 +216,19 @@ class SyntheticExperimentRunner(BaseExperiment):
             experiment_result = self.run_single_experiment(dataset_config)
             all_results[dataset_config['name']] = experiment_result
 
-            # Save results
+            # Save evaluation metrics
             if self.config['output'].get('save_metrics', True):
                 self.save_results(
                     dataset_config['name'],
                     experiment_result,
                     format=self.config['output'].get('results_format', 'csv')
+                )
+
+            # Save decomposition components for plotting
+            if self.config['output'].get('save_decompositions', True):
+                self.save_decomposition_components(
+                    dataset_config['name'],
+                    experiment_result
                 )
 
         self.results = all_results

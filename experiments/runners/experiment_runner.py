@@ -46,7 +46,9 @@ class ExperimentRunner:
         # Available models
         self.available_models = [
             'LGTD', 'LGTD_Linear', 'LGTD_LOWESS',
-            'STL', 'RobustSTL', 'ASTD'
+            'STL', 'RobustSTL', 'FastRobustSTL',
+            'STR', 'OnlineSTL', 'OneShotSTL',
+            'ASTD', 'ASTD_Online'
         ]
 
         # Load all dataset configs
@@ -62,18 +64,49 @@ class ExperimentRunner:
         return configs
 
     def _load_dataset(self, config: Dict) -> Dict[str, np.ndarray]:
-        """Load dataset from JSON file."""
-        dataset_path = config['dataset']['path']
-        with open(dataset_path, 'r') as f:
-            data = json.load(f)
+        """Load dataset from JSON file or real-world data loader."""
+        dataset_type = config['dataset'].get('type', 'synthetic')
 
-        return {
-            'y': np.array(data['data']['y']),
-            'trend': np.array(data['data']['trend']),
-            'seasonal': np.array(data['data']['seasonal']),
-            'residual': np.array(data['data']['residual']),
-            'time': np.array(data['data']['time'])
-        }
+        if dataset_type == 'real_world':
+            # Load real-world dataset using loader function
+            from data.real_world.loaders import load_ett_dataset, load_sunspot_dataset
+
+            dataset_name = config['dataset']['name']
+            loader_params = config['dataset'].get('loader_params', {})
+
+            # Call appropriate loader based on dataset name
+            if dataset_name in ['ETTh1', 'ETTh2']:
+                data = load_ett_dataset(dataset_name, **loader_params)
+            elif dataset_name == 'Sunspot':
+                data = load_sunspot_dataset(**loader_params)
+            else:
+                raise ValueError(f"Unknown dataset: {dataset_name}")
+
+            # Limit to first 2500 points for real-world experiments
+            max_points = 2500
+            y_data = data['y'][:max_points]
+
+            # Real-world datasets don't have ground truth, so we set them to None
+            return {
+                'y': y_data,
+                'time': np.arange(len(y_data)),
+                'trend': None,
+                'seasonal': None,
+                'residual': None
+            }
+        else:
+            # Load synthetic dataset from JSON file
+            dataset_path = config['dataset']['path']
+            with open(dataset_path, 'r') as f:
+                data = json.load(f)
+
+            return {
+                'y': np.array(data['data']['y']),
+                'trend': np.array(data['data']['trend']),
+                'seasonal': np.array(data['data']['seasonal']),
+                'residual': np.array(data['data']['residual']),
+                'time': np.array(data['data']['time'])
+            }
 
     def _run_lgtd_variant(
         self,
@@ -124,6 +157,57 @@ class ExperimentRunner:
             'time': elapsed_time
         }
 
+    def _run_baseline(
+        self,
+        model_name: str,
+        data: np.ndarray,
+        params: Dict
+    ) -> Dict[str, Any]:
+        """Run a baseline decomposition method."""
+        start_time = time.time()
+
+        try:
+            if model_name == 'RobustSTL':
+                from experiments.baselines.robust_stl import RobustSTLDecomposer
+                model = RobustSTLDecomposer(**params)
+            elif model_name == 'FastRobustSTL':
+                from experiments.baselines.fast_robust_stl import FastRobustSTLDecomposer
+                model = FastRobustSTLDecomposer(**params)
+            elif model_name == 'STR':
+                from experiments.baselines.str_decomposer import STRDecomposer
+                model = STRDecomposer(**params)
+            elif model_name == 'OnlineSTL':
+                from experiments.baselines.online_stl import OnlineSTLDecomposer
+                model = OnlineSTLDecomposer(**params)
+            elif model_name == 'OneShotSTL':
+                from experiments.baselines.oneshot_stl import OneShotSTLDecomposer
+                model = OneShotSTLDecomposer(**params)
+            elif model_name in ['ASTD', 'ASTD_Online']:
+                from experiments.baselines.astd import ASTDDecomposer
+                # Check if ASTD is actually available before creating instance
+                decomposer = ASTDDecomposer(**params)
+                if not decomposer._astd_available:
+                    raise ImportError("ASTD module not found in baselines directory")
+                model = decomposer
+            else:
+                raise ValueError(f"Unknown baseline: {model_name}")
+
+            result = model.fit_transform(data)
+            elapsed_time = time.time() - start_time
+
+            return {
+                'trend': result['trend'],
+                'seasonal': result['seasonal'],
+                'residual': result['residual'],
+                'time': elapsed_time
+            }
+        except (ImportError, NotImplementedError) as e:
+            # For missing dependencies, raise a clearer error
+            raise NotImplementedError(f"{model_name} is not available: {str(e)}")
+        except Exception as e:
+            # For other errors, re-raise with context
+            raise RuntimeError(f"{model_name} failed: {str(e)}")
+
     def _run_model(
         self,
         model_name: str,
@@ -135,14 +219,9 @@ class ExperimentRunner:
             return self._run_lgtd_variant(data, model_name, params)
         elif model_name == 'STL':
             return self._run_stl(data, params)
-        elif model_name == 'RobustSTL':
-            # TODO: Implement if needed
-            raise NotImplementedError(f"{model_name} not yet implemented")
-        elif model_name == 'ASTD':
-            # TODO: Implement if needed
-            raise NotImplementedError(f"{model_name} not yet implemented")
         else:
-            raise ValueError(f"Unknown model: {model_name}")
+            # Try as baseline method
+            return self._run_baseline(model_name, data, params)
 
     def _compute_metrics(
         self,
@@ -151,6 +230,17 @@ class ExperimentRunner:
         metrics: List[str]
     ) -> Dict[str, float]:
         """Compute evaluation metrics."""
+        computed_metrics = {}
+
+        # Check if ground truth is available
+        has_ground_truth = (ground_truth.get('trend') is not None and
+                           ground_truth.get('seasonal') is not None and
+                           ground_truth.get('residual') is not None)
+
+        if not has_ground_truth:
+            # For real-world data without ground truth, return empty metrics
+            return computed_metrics
+
         gt = {
             'trend': ground_truth['trend'],
             'seasonal': ground_truth['seasonal'],
@@ -162,8 +252,6 @@ class ExperimentRunner:
             'seasonal': result['seasonal'],
             'residual': result['residual']
         }
-
-        computed_metrics = {}
 
         if 'mse' in metrics:
             mse = compute_mse(gt, res)
@@ -191,6 +279,41 @@ class ExperimentRunner:
                 computed_metrics[f'psnr_{comp}'] = val
 
         return computed_metrics
+
+    def save_decomposition_components(
+        self,
+        dataset_name: str,
+        model_name: str,
+        data: Dict[str, np.ndarray],
+        result: Dict[str, Any]
+    ) -> None:
+        """
+        Save decomposition components for plotting.
+
+        Args:
+            dataset_name: Name of the dataset
+            model_name: Name of the model
+            data: Dictionary with original data (y)
+            result: Result dictionary with decomposition components
+        """
+        import json
+
+        # Create dataset subdirectory
+        dataset_dir = self.results_dir / "decompositions" / dataset_name
+        dataset_dir.mkdir(parents=True, exist_ok=True)
+
+        # Prepare data in the format expected by plot scripts
+        decomposition_data = {
+            'y': data['y'].tolist(),
+            'trend': result['trend'].tolist(),
+            'seasonal': result['seasonal'].tolist(),
+            'residual': result['residual'].tolist()
+        }
+
+        # Save as JSON
+        output_path = dataset_dir / f"{model_name}.json"
+        with open(output_path, 'w') as f:
+            json.dump(decomposition_data, f, indent=2)
 
     def run_experiment(
         self,
@@ -272,8 +395,8 @@ class ExperimentRunner:
                     # Compile result
                     result_entry = {
                         'dataset': dataset_name,
-                        'trend_type': config['dataset']['trend_type'],
-                        'period_type': config['dataset']['period_type'],
+                        'trend_type': config['dataset'].get('trend_type', 'unknown'),
+                        'period_type': config['dataset'].get('period_type', 'unknown'),
                         'model': model_name,
                         'time': result['time'],
                         **metrics
@@ -286,7 +409,19 @@ class ExperimentRunner:
                     results.append(result_entry)
 
                     if verbose:
-                        print(f"✓ (MSE trend: {metrics.get('mse_trend', 0):.2f}, time: {result['time']:.3f}s)")
+                        if metrics:
+                            print(f"✓ (MSE trend: {metrics.get('mse_trend', 0):.2f}, time: {result['time']:.3f}s)")
+                        else:
+                            print(f"✓ (time: {result['time']:.3f}s)")
+
+                    # Save decomposition components for plotting
+                    if save_results:
+                        self.save_decomposition_components(
+                            dataset_name,
+                            model_name,
+                            data,
+                            result
+                        )
 
                     # Save plot if enabled
                     if config['evaluation'].get('save_plots', False):
@@ -323,8 +458,8 @@ class ExperimentRunner:
                         print(f"✗ Error: {e}")
                     results.append({
                         'dataset': dataset_name,
-                        'trend_type': config['dataset']['trend_type'],
-                        'period_type': config['dataset']['period_type'],
+                        'trend_type': config['dataset'].get('trend_type', 'unknown'),
+                        'period_type': config['dataset'].get('period_type', 'unknown'),
                         'model': model_name,
                         'error': str(e)
                     })
@@ -338,19 +473,26 @@ class ExperimentRunner:
             benchmarks_dir = Path('experiments/results/benchmarks')
             benchmarks_dir.mkdir(parents=True, exist_ok=True)
 
+            # Determine benchmark type based on datasets
+            # Check if any dataset starts with 'synth' for synthetic, otherwise real-world
+            is_synthetic = any(d.startswith('synth') for d in datasets_to_run)
+            benchmark_type = "synthetic" if is_synthetic else "realworld"
+
             # Save canonical version with descriptive name
-            canonical_file = benchmarks_dir / "synthetic_benchmarks.csv"
+            canonical_file = benchmarks_dir / f"{benchmark_type}_benchmarks.csv"
             results_df.to_csv(canonical_file, index=False)
 
             # Also save timestamped version for history
             timestamp = time.strftime("%Y%m%d_%H%M%S")
-            timestamped_file = benchmarks_dir / f"synthetic_benchmarks_{timestamp}.csv"
+            timestamped_file = benchmarks_dir / f"{benchmark_type}_benchmarks_{timestamp}.csv"
             results_df.to_csv(timestamped_file, index=False)
 
             if verbose:
-                print(f"\nResults saved to:")
+                print(f"\n✓ Benchmarks saved to:")
                 print(f"  {canonical_file}")
                 print(f"  {timestamped_file}")
+                print(f"\n✓ Decomposition components saved to:")
+                print(f"  {self.results_dir / 'decompositions'}")
 
         return results_df
 
