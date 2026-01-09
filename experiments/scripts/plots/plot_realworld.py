@@ -33,9 +33,13 @@ MODEL_COLORS = {
 
 def load_result(dataset_name, model_name):
     results_dir = Path('experiments/results/real_world/decompositions')
-    result_file = results_dir / f"{dataset_name}_{model_name}.json"
+    # Try subdirectory structure first (new format)
+    result_file = results_dir / dataset_name / f"{model_name}.json"
     if not result_file.exists():
-        return None
+        # Fallback to flat structure (old format)
+        result_file = results_dir / f"{dataset_name}_{model_name}.json"
+        if not result_file.exists():
+            return None
     with open(result_file, 'r') as f:
         data = json.load(f)
     return {k: np.array(data[k]) for k in ['y', 'trend', 'seasonal', 'residual']}
@@ -158,7 +162,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=['by-dataset', 'by-model', 'both'], default='both')
-    parser.add_argument('--datasets', nargs='+', default=['sunspot', 'ETTh1', 'ETTh2'])
+    parser.add_argument('--datasets', nargs='+', default=['Sunspot', 'ETTh1', 'ETTh2'])
     parser.add_argument('--models', nargs='+', default=['LGTD', 'STL', 'OnlineSTL', 'ASTD_Online'])
     args = parser.parse_args()
 
