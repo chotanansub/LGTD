@@ -196,10 +196,6 @@ This repository accompanies a paper currently under review. Full citation will b
 
 See [data/real_world/DATASETS.md](data/real_world/DATASETS.md) for complete citations.
 
-## License
-
-MIT License. See LICENSE file for details.
-
 ## Contact
 
 For questions or issues, please open a GitHub issue.
