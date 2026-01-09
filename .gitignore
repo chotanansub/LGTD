@@ -49,3 +49,6 @@ htmlcov/
 
 # Temporary scripts
 check_plot_legends.py
+
+experiments/results/**/*.json
+experiments/results/**/*.png
