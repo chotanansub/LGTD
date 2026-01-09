@@ -42,7 +42,7 @@ class ASTDDecomposer:
     def _check_availability(self) -> bool:
         """Check if ASTD is available."""
         try:
-            from experiments.baselines.ASTD.ASTD import ASTD
+            from experiments.baselines.ASTD.online_decomposition.ASTD import ASTD
             return True
         except ImportError:
             return False
@@ -80,7 +80,7 @@ class ASTDDecomposer:
         Returns:
             Dictionary with decomposition components
         """
-        from experiments.baselines.ASTD.ASTD import ASTD
+        from experiments.baselines.ASTD.online_decomposition.ASTD import ASTD
 
         window_size = len(data)
 
@@ -111,7 +111,7 @@ class ASTDDecomposer:
         Returns:
             Dictionary with decomposition components
         """
-        from experiments.baselines.ASTD.ASTD import ASTD
+        from experiments.baselines.ASTD.online_decomposition.ASTD import ASTD
 
         # Determine actual window size (minimum of init_window_size and data length)
         window_size = min(self.init_window_size, len(data))

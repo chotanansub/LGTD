@@ -1,0 +1,1 @@
+"""Online decomposition methods."""
