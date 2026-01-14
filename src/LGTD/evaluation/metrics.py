@@ -82,9 +82,28 @@ def peak_signal_noise_ratio(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return psnr
 
 
+def align_component(gt: np.ndarray, pred: np.ndarray) -> np.ndarray:
+    """
+    Align predicted component with ground truth by removing mean difference.
+
+    Decomposition components are unique only up to a constant (you can add c to trend
+    and subtract c from seasonal and still get the same y). This function aligns
+    the predicted component to have the same mean as ground truth.
+
+    Args:
+        gt: Ground truth component
+        pred: Predicted component
+
+    Returns:
+        Aligned predicted component
+    """
+    return pred - np.mean(pred) + np.mean(gt)
+
+
 def compute_decomposition_metrics(
     ground_truth: Dict[str, np.ndarray],
-    result: Dict[str, np.ndarray]
+    result: Dict[str, np.ndarray],
+    align_components: bool = True
 ) -> Dict[str, Dict[str, float]]:
     """
     Compute comprehensive metrics for decomposition quality.
@@ -92,6 +111,7 @@ def compute_decomposition_metrics(
     Args:
         ground_truth: Dictionary with 'trend', 'seasonal', 'residual' ground truth
         result: Dictionary with 'trend', 'seasonal', 'residual' predictions
+        align_components: Whether to align components before computing metrics (default: True)
 
     Returns:
         Dictionary of metrics for each component
@@ -102,6 +122,10 @@ def compute_decomposition_metrics(
         if component in ground_truth and component in result:
             gt = ground_truth[component]
             pred = result[component]
+
+            # Align components if requested (decomposition is unique up to a constant)
+            if align_components:
+                pred = align_component(gt, pred)
 
             metrics[component] = {
                 'mse': mean_squared_error(gt, pred),
@@ -114,13 +138,14 @@ def compute_decomposition_metrics(
     return metrics
 
 
-def compute_mse(ground_truth: Dict[str, np.ndarray], result: Dict[str, np.ndarray]) -> Dict[str, float]:
+def compute_mse(ground_truth: Dict[str, np.ndarray], result: Dict[str, np.ndarray], align_components: bool = True) -> Dict[str, float]:
     """
     Compute MSE for each component.
 
     Args:
         ground_truth: Dictionary with ground truth components
         result: Dictionary with predicted components
+        align_components: Whether to align components before computing MSE (default: True)
 
     Returns:
         Dictionary with MSE for each component
@@ -128,20 +153,25 @@ def compute_mse(ground_truth: Dict[str, np.ndarray], result: Dict[str, np.ndarra
     mse = {}
     for component in ['trend', 'seasonal', 'residual']:
         if component in ground_truth and component in result:
-            mse[component] = mean_squared_error(
-                ground_truth[component],
-                result[component]
-            )
+            gt = ground_truth[component]
+            pred = result[component]
+
+            # Align if requested
+            if align_components:
+                pred = align_component(gt, pred)
+
+            mse[component] = mean_squared_error(gt, pred)
     return mse
 
 
-def compute_mae(ground_truth: Dict[str, np.ndarray], result: Dict[str, np.ndarray]) -> Dict[str, float]:
+def compute_mae(ground_truth: Dict[str, np.ndarray], result: Dict[str, np.ndarray], align_components: bool = True) -> Dict[str, float]:
     """
     Compute MAE for each component.
 
     Args:
         ground_truth: Dictionary with ground truth components
         result: Dictionary with predicted components
+        align_components: Whether to align components before computing MAE (default: True)
 
     Returns:
         Dictionary with MAE for each component
@@ -149,10 +179,14 @@ def compute_mae(ground_truth: Dict[str, np.ndarray], result: Dict[str, np.ndarra
     mae = {}
     for component in ['trend', 'seasonal', 'residual']:
         if component in ground_truth and component in result:
-            mae[component] = mean_absolute_error(
-                ground_truth[component],
-                result[component]
-            )
+            gt = ground_truth[component]
+            pred = result[component]
+
+            # Align if requested
+            if align_components:
+                pred = align_component(gt, pred)
+
+            mae[component] = mean_absolute_error(gt, pred)
     return mae
 
 

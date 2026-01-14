@@ -53,6 +53,9 @@ all = [
     "lgtd[experiments,dev]",
 ]
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [project.urls]
 Homepage = "https://github.com/chotanansub/lgtd"
 Documentation = "https://lgtd.readthedocs.io"
