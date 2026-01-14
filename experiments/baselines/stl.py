@@ -15,7 +15,7 @@ class STLDecomposer:
     It uses LOESS (locally weighted regression) for trend and seasonal extraction.
     """
 
-    def __init__(self, period: int = 12, seasonal: int = 7, trend: int = None):
+    def __init__(self, period: int = 12, seasonal: int = 7, trend: int = None, robust: bool = False):
         """
         Initialize STL decomposer.
 
@@ -23,10 +23,12 @@ class STLDecomposer:
             period: Seasonal period
             seasonal: Length of the seasonal smoother (must be odd)
             trend: Length of the trend smoother (must be odd)
+            robust: Whether to use robust fitting
         """
         self.period = period
         self.seasonal = seasonal
         self.trend = trend
+        self.robust = robust
 
     def decompose(self, data: np.ndarray) -> Dict[str, np.ndarray]:
         """
@@ -44,7 +46,7 @@ class STLDecomposer:
         ts = pd.Series(data, index=pd.RangeIndex(len(data)))
 
         # Perform STL decomposition
-        stl = STL(ts, period=self.period, seasonal=self.seasonal, trend=self.trend)
+        stl = STL(ts, period=self.period, seasonal=self.seasonal, trend=self.trend, robust=self.robust)
         components = stl.fit()
 
         return {
