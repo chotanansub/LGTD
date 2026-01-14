@@ -490,8 +490,8 @@ def main():
     )
     parser.add_argument(
         '-o', '--output',
-        default='experiments/results/summary/table_model_parameters.tex',
-        help='Output LaTeX file (default: experiments/results/summary/table_model_parameters.tex)'
+        default='experiments/results/latex_tables/synthetic/table_model_parameters.tex',
+        help='Output LaTeX file (default: experiments/results/latex_tables/synthetic/table_model_parameters.tex)'
     )
     parser.add_argument(
         '--datasets',

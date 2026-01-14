@@ -151,21 +151,90 @@ def generate_mae_table(
     print(f"Generated: {output_file}")
 
 
+def load_metrics_from_individual_files(metrics_dir='experiments/results/accuracy/synthetic'):
+    """
+    Load and combine individual metric CSV files into a single DataFrame.
+
+    Args:
+        metrics_dir: Directory containing individual metric CSV files
+
+    Returns:
+        Combined DataFrame with all metrics
+    """
+    import json
+
+    metrics_path = Path(metrics_dir)
+
+    if not metrics_path.exists():
+        return None
+
+    all_data = []
+    csv_files = list(metrics_path.glob('*_metrics.csv'))
+
+    for csv_file in csv_files:
+        # Extract dataset name from filename (e.g., synth1_linear_fixed_metrics.csv -> synth1)
+        dataset_name = csv_file.stem.split('_')[0]
+
+        # Load the CSV
+        df = pd.read_csv(csv_file)
+
+        # Get period type from dataset JSON
+        dataset_file = Path('data/synthetic/datasets') / f'{dataset_name}_data.json'
+        period_type = None
+        if dataset_file.exists():
+            with open(dataset_file, 'r') as f:
+                data = json.load(f)
+                meta = data.get('meta', {})
+                period_type = meta.get('period_type', None)
+
+        # Pivot the data to get mse_trend, mse_seasonal, mae_trend, etc.
+        for model in df['model'].unique():
+            model_df = df[df['model'] == model]
+
+            row_data = {
+                'dataset': dataset_name,
+                'model': model,
+                'period_type': period_type
+            }
+
+            # Extract MSE values
+            mse_row = model_df[model_df['metric'] == 'MSE']
+            if not mse_row.empty:
+                mse_row = mse_row.iloc[0]
+                row_data['mse_trend'] = mse_row.get('trend', float('nan'))
+                row_data['mse_seasonal'] = mse_row.get('seasonal', float('nan'))
+                row_data['mse_residual'] = mse_row.get('residual', float('nan'))
+
+            # Extract MAE values
+            mae_row = model_df[model_df['metric'] == 'MAE']
+            if not mae_row.empty:
+                mae_row = mae_row.iloc[0]
+                row_data['mae_trend'] = mae_row.get('trend', float('nan'))
+                row_data['mae_seasonal'] = mae_row.get('seasonal', float('nan'))
+                row_data['mae_residual'] = mae_row.get('residual', float('nan'))
+
+            all_data.append(row_data)
+
+    if not all_data:
+        return None
+
+    return pd.DataFrame(all_data)
+
 def main():
-    # Load experiment results
-    results_file = Path('experiments/results/benchmarks/synthetic_benchmarks.csv')
-
-    if not results_file.exists():
-        print(f"Error: {results_file} not found!")
-        print("Please run experiments first: python experiments/runners/experiment_runner.py")
-        return
-
-    df = pd.read_csv(results_file)
-
+    # Load experiment results from individual metric files
     print("="*70)
     print("Generating MAE Summary Tables")
     print("="*70)
-    print(f"\nLoaded {len(df)} experiment results from {results_file}")
+    print("\nLoading metrics from individual CSV files...")
+
+    df = load_metrics_from_individual_files('experiments/results/accuracy/synthetic')
+
+    if df is None:
+        print("Error: No metric files found in experiments/results/synthetic/accuracy/")
+        print("Please run experiments first.")
+        return
+
+    print(f"Loaded {len(df)} experiment results")
     print(f"Datasets: {df['dataset'].nunique()}")
     print(f"Models: {df['model'].nunique()}")
     print()
@@ -175,7 +244,7 @@ def main():
     print()
 
     # Create output directory
-    output_dir = Path('experiments/results/summary')
+    output_dir = Path('experiments/results/latex_tables/synthetic')
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Table 1: All datasets

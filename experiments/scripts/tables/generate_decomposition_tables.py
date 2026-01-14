@@ -338,6 +338,69 @@ def generate_latex_table(df, output_file='table_decomposition_results.tex',
 # Main
 # -----------------------------
 
+def load_metrics_from_individual_files(metrics_dir='experiments/results/accuracy/synthetic'):
+    """
+    Load and combine individual metric CSV files into a single DataFrame.
+
+    Args:
+        metrics_dir: Directory containing individual metric CSV files
+
+    Returns:
+        Combined DataFrame with all metrics
+    """
+    metrics_path = Path(metrics_dir)
+
+    if not metrics_path.exists():
+        return None
+
+    all_data = []
+    csv_files = list(metrics_path.glob('*_metrics.csv'))
+
+    for csv_file in csv_files:
+        # Extract dataset name from filename (e.g., synth1_linear_fixed_metrics.csv -> synth1)
+        dataset_name = csv_file.stem.split('_')[0]  # Get 'synth1' from 'synth1_linear_fixed_metrics'
+
+        # Load the CSV
+        df = pd.read_csv(csv_file)
+
+        # Pivot the data to get mse_trend, mse_seasonal, mae_trend, etc.
+        for model in df['model'].unique():
+            model_df = df[df['model'] == model]
+
+            row_data = {
+                'dataset': dataset_name,
+                'model': model
+            }
+
+            # Extract MSE values
+            mse_row = model_df[model_df['metric'] == 'MSE']
+            if not mse_row.empty:
+                mse_row = mse_row.iloc[0]
+                row_data['mse_trend'] = mse_row.get('trend', float('nan'))
+                row_data['mse_seasonal'] = mse_row.get('seasonal', float('nan'))
+                row_data['mse_residual'] = mse_row.get('residual', float('nan'))
+
+            # Extract MAE values
+            mae_row = model_df[model_df['metric'] == 'MAE']
+            if not mae_row.empty:
+                mae_row = mae_row.iloc[0]
+                row_data['mae_trend'] = mae_row.get('trend', float('nan'))
+                row_data['mae_seasonal'] = mae_row.get('seasonal', float('nan'))
+                row_data['mae_residual'] = mae_row.get('residual', float('nan'))
+
+            # Add dataset properties from JSON
+            if dataset_name in DATASET_PROPERTIES:
+                props = DATASET_PROPERTIES[dataset_name]
+                row_data['trend_type'] = props['trend_type']
+                row_data['period_type'] = props['period']
+
+            all_data.append(row_data)
+
+    if not all_data:
+        return None
+
+    return pd.DataFrame(all_data)
+
 def main():
     parser = argparse.ArgumentParser(
         description='Convert experiment results CSV to LaTeX table'
@@ -345,12 +408,12 @@ def main():
     parser.add_argument(
         'csv_file',
         nargs='?',
-        help='Path to CSV file (default: latest file in results/synthetic/)'
+        help='Path to CSV file or accuracy directory (default: experiments/results/accuracy/synthetic/)'
     )
     parser.add_argument(
         '-o', '--output',
-        default='experiments/results/summary/table_decomposition_results.tex',
-        help='Output LaTeX file (default: experiments/results/summary/table_decomposition_results.tex)'
+        default='experiments/results/latex_tables/synthetic/table_decomposition_results.tex',
+        help='Output LaTeX file (default: experiments/results/latex_tables/synthetic/table_decomposition_results.tex)'
     )
     parser.add_argument(
         '--no-bold',
@@ -371,35 +434,37 @@ def main():
 
     args = parser.parse_args()
 
-    # Find CSV file
+    # Load data
+    df = None
+
     if args.csv_file:
         csv_path = Path(args.csv_file)
+        if csv_path.is_file():
+            # Load single CSV file
+            try:
+                df = pd.read_csv(csv_path)
+                print(f"✅ Loaded {len(df)} rows from {csv_path.name}")
+            except Exception as e:
+                print(f"❌ Error loading CSV: {e}")
+                sys.exit(1)
+        else:
+            print(f"❌ File not found: {csv_path}")
+            sys.exit(1)
     else:
-        # Use default benchmarks CSV
-        csv_path = Path('experiments/results/benchmarks/synthetic_benchmarks.csv')
+        # Load from individual metric files
+        print("📊 Loading metrics from individual CSV files...")
+        df = load_metrics_from_individual_files('experiments/results/accuracy/synthetic')
 
-        if not csv_path.exists():
-            print("❌ No results file found: experiments/results/benchmarks/synthetic_benchmarks.csv")
-            print("   Please run experiments first or specify a CSV file.")
+        if df is None:
+            print("❌ No metric files found in experiments/results/accuracy/synthetic/")
+            print("   Please run experiments first.")
             sys.exit(1)
 
-        print(f"📊 Using experiment results: {csv_path}")
-        print(f"   File size: {csv_path.stat().st_size} bytes")
+        print(f"✅ Loaded {len(df)} rows from individual metric files")
 
-    # Check if file exists
-    if not csv_path.exists():
-        print(f"❌ File not found: {csv_path}")
-        sys.exit(1)
-
-    # Load CSV
-    try:
-        df = pd.read_csv(csv_path)
-        print(f"✅ Loaded {len(df)} rows from {csv_path.name}")
-        print(f"   Datasets: {sorted(df['dataset'].unique())}")
-        print(f"   Models: {sorted(df['model'].unique())}")
-    except Exception as e:
-        print(f"❌ Error loading CSV: {e}")
-        sys.exit(1)
+    # Display info
+    print(f"   Datasets: {sorted(df['dataset'].unique())}")
+    print(f"   Models: {sorted(df['model'].unique())}")
 
     # Generate LaTeX table
     try:
