@@ -2,6 +2,7 @@
 Base experiment runner for decomposition methods.
 """
 
+import argparse
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -20,18 +21,23 @@ class BaseExperiment:
     - Running decomposition methods
     - Computing evaluation metrics
     - Saving results
+    - Command-line argument parsing
     """
 
-    def __init__(self, output_dir: str = 'results'):
+    def __init__(self, output_dir: str = 'results', config_path: Optional[str] = None):
         """
         Initialize base experiment.
 
         Args:
             output_dir: Directory to save results
+            config_path: Path to configuration file (optional)
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.results = {}
+        self.config = None
+        if config_path:
+            self.config = self.load_config(config_path)
 
     def load_config(self, config_path: str) -> Dict[str, Any]:
         """
@@ -148,13 +154,15 @@ class BaseExperiment:
             format: Output format ('csv' or 'json')
         """
         # Create subdirectories for organized storage
-        # Save metrics separately from decomposition components
-        metrics_dir = self.output_dir / "metrics"
-        metrics_dir.mkdir(parents=True, exist_ok=True)
+        # Save accuracy metrics separately from decomposition components
+        # Determine dataset type from output_dir or default to synthetic
+        dataset_type = "synthetic"  # Default for backward compatibility
+        accuracy_dir = self.output_dir / "accuracy" / dataset_type
+        accuracy_dir.mkdir(parents=True, exist_ok=True)
 
         if format == 'csv' and 'evaluation' in results:
             # Save evaluation metrics as CSV
-            output_path = metrics_dir / f"{dataset_name}_metrics.{format}"
+            output_path = accuracy_dir / f"{dataset_name}_metrics.{format}"
             results['evaluation'].to_csv(output_path, index=False)
             print(f"✓ Metrics saved to: {output_path}")
         elif format == 'json':
@@ -172,7 +180,7 @@ class BaseExperiment:
                 else:
                     serializable_results[key] = value
 
-            output_path = metrics_dir / f"{dataset_name}_metrics.{format}"
+            output_path = accuracy_dir / f"{dataset_name}_metrics.{format}"
             with open(output_path, 'w') as f:
                 json.dump(serializable_results, f, indent=2)
             print(f"✓ Metrics saved to: {output_path}")
@@ -202,3 +210,121 @@ class BaseExperiment:
                       f"Trend: {mse_row.get('trend', 0):.6f}, "
                       f"Seasonal: {mse_row.get('seasonal', 0):.6f}, "
                       f"Residual: {mse_row.get('residual', 0):.6f}")
+
+    @staticmethod
+    def create_argument_parser(description: str = "Run decomposition experiments") -> argparse.ArgumentParser:
+        """
+        Create command-line argument parser with common options.
+
+        Args:
+            description: Description for the argument parser
+
+        Returns:
+            Configured ArgumentParser instance
+        """
+        parser = argparse.ArgumentParser(description=description)
+
+        parser.add_argument(
+            '--datasets', '-d',
+            nargs='+',
+            help='Dataset names to run (e.g., synth1 synth2). Default: all configured datasets'
+        )
+
+        parser.add_argument(
+            '--models', '-m',
+            nargs='+',
+            help='Model names to run (e.g., LGTD ASTD_Online). Default: all enabled models'
+        )
+
+        parser.add_argument(
+            '--config',
+            type=str,
+            help='Path to configuration file (overrides default)'
+        )
+
+        parser.add_argument(
+            '--output-dir', '-o',
+            type=str,
+            help='Directory to save results (overrides default)'
+        )
+
+        parser.add_argument(
+            '--no-save',
+            action='store_true',
+            help='Do not save results to file'
+        )
+
+        parser.add_argument(
+            '--quiet', '-q',
+            action='store_true',
+            help='Suppress progress output'
+        )
+
+        return parser
+
+    def filter_datasets(self, dataset_filter: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+        """
+        Filter datasets based on user specification.
+
+        Args:
+            dataset_filter: List of dataset names to include (None = all)
+
+        Returns:
+            List of filtered dataset configurations
+        """
+        if self.config is None or 'datasets' not in self.config:
+            return []
+
+        datasets = self.config['datasets']
+
+        if dataset_filter is None:
+            return datasets
+
+        # Filter datasets by name
+        filtered = [d for d in datasets if d.get('name') in dataset_filter]
+
+        if not filtered:
+            available = [d.get('name') for d in datasets]
+            raise ValueError(
+                f"No matching datasets found. "
+                f"Requested: {dataset_filter}, Available: {available}"
+            )
+
+        return filtered
+
+    def filter_methods(self, method_filter: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Filter methods based on user specification.
+
+        Args:
+            method_filter: List of method names to include (None = all enabled)
+
+        Returns:
+            Dictionary of filtered method configurations
+        """
+        if self.config is None or 'methods' not in self.config:
+            return {}
+
+        methods = self.config['methods']
+
+        if method_filter is None:
+            # Return all enabled methods
+            return {k: v for k, v in methods.items() if v.get('enabled', True)}
+
+        # Normalize method names to lowercase for comparison
+        method_filter_lower = [m.lower() for m in method_filter]
+
+        # Filter methods by name
+        filtered = {}
+        for method_name, method_config in methods.items():
+            if method_name.lower() in method_filter_lower:
+                filtered[method_name] = method_config
+
+        if not filtered:
+            available = list(methods.keys())
+            raise ValueError(
+                f"No matching methods found. "
+                f"Requested: {method_filter}, Available: {available}"
+            )
+
+        return filtered
