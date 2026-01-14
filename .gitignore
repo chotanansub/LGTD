@@ -51,4 +51,5 @@ htmlcov/
 check_plot_legends.py
 
 experiments/results/**/*.json
+experiments/results/**/*.csv
 experiments/results/**/*.png
