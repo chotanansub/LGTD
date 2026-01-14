@@ -7,42 +7,37 @@
     "period": 120
   },
   "models": {
-    "LGTD": {
+    "lgtd": {
       "enabled": true,
-      "model_type": "batch",
       "params": {
         "window_size": 3,
         "error_percentile": 30,
         "trend_selection": "auto",
-        "lowess_frac": 0.25,
-        "threshold_r2": 0.85,
+        "lowess_frac": 0.1,
+        "threshold_r2": 0.92,
         "verbose": false
       }
     },
-    "LGTD_Linear": {
+    "lgtd_linear": {
       "enabled": true,
-      "model_type": "batch",
       "params": {
         "window_size": 3,
-        "error_percentile": 50,
-        "trend_selection": "linear",
-        "verbose": false
-      }
-    },
-    "LGTD_LOWESS": {
-      "enabled": true,
-      "model_type": "batch",
-      "params": {
-        "window_size": 3,
-        "error_percentile": 50,
-        "trend_selection": "lowess",
+        "error_percentile": 30,
         "lowess_frac": 0.1,
         "verbose": false
       }
     },
-    "STL": {
+    "lgtd_lowess": {
       "enabled": true,
-      "model_type": "batch",
+      "params": {
+        "window_size": 3,
+        "error_percentile": 30,
+        "lowess_frac": 0.1,
+        "verbose": false
+      }
+    },
+    "stl": {
+      "enabled": true,
       "params": {
         "period": 120,
         "seasonal": 13,
@@ -50,11 +45,10 @@
         "robust": false
       }
     },
-    "RobustSTL": {
+    "robust_stl": {
       "enabled": false,
-      "model_type": "batch",
       "params": {
-        "period": 120,
+        "period": 12,
         "reg1": 10.0,
         "reg2": 0.5,
         "K": 2,
@@ -65,25 +59,8 @@
         "ds2": 1.0
       }
     },
-    "ASTD": {
+    "fast_robust_stl": {
       "enabled": true,
-      "model_type": "batch",
-      "params": {
-        "seasonality_smoothing": 0.7
-      }
-    },
-    "ASTD_Online": {
-      "enabled": true,
-      "model_type": "online",
-      "params": {
-        "seasonality_smoothing": 0.7,
-        "init_window_size": 300,
-        "init_ratio": 0.3
-      }
-    },
-    "FastRobustSTL": {
-      "enabled": true,
-      "model_type": "batch",
       "params": {
         "period": 120,
         "reg1": 1.0,
@@ -97,9 +74,8 @@
         "max_iter": 1000
       }
     },
-    "STR": {
+    "str": {
       "enabled": true,
-      "model_type": "batch",
       "params": {
         "seasonal_periods": [
           120
@@ -111,11 +87,9 @@
         "n_trials": 20
       }
     },
-    "OnlineSTL": {
+    "online_stl": {
       "enabled": true,
-      "model_type": "online",
       "params": {
-        "period": 120,
         "periods": [
           120
         ],
@@ -123,13 +97,27 @@
         "init_window_ratio": 0.3
       }
     },
-    "OneShotSTL": {
+    "oneshot_stl": {
       "enabled": true,
-      "model_type": "online",
       "params": {
         "period": 120,
         "shift_window": 0,
         "init_ratio": 0.3
+      }
+    },
+    "astd": {
+      "enabled": true,
+      "params": {
+        "seasonality_smoothing": 0.7,
+        "mode": "batch"
+      }
+    },
+    "astd_online": {
+      "enabled": true,
+      "params": {
+        "seasonality_smoothing": 0.7,
+        "mode": "online",
+        "init_window_size": 300
       }
     }
   },
@@ -142,6 +130,6 @@
       "psnr"
     ],
     "save_plots": true,
-    "plot_dir": "results/synthetic/plots/synth1"
+    "plot_dir": "experiments/results/synthetic/figures/synth1"
   }
 }

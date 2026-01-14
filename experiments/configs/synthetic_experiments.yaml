@@ -60,21 +60,31 @@ datasets:
   seasonal_params:
     amplitude: 50.0
     periods:
-    - 100
-    - 300
-    - 150
-    - 400
-    - 120
-    - 350
-    - 180
-    - 450
-    - 200
-    - 250
+    - 72
+    - 87
+    - 89
+    - 103
+    - 104
+    - 105
     - 140
-    - 380
-    - 220
-    - 500
-    - 160
+    - 146
+    - 149
+    - 153
+    - 159
+    - 174
+    - 189
+    - 238
+    - 256
+    - 257
+    - 298
+    - 352
+    - 388
+    - 399
+    - 425
+    - 430
+    - 440
+    - 471
+    - 490
   n_samples: 2000
   noise_std: 1.0
 - name: synth8_inverted_v_variable
@@ -83,21 +93,31 @@ datasets:
   seasonal_params:
     amplitude: 50.0
     periods:
-    - 100
-    - 300
-    - 150
-    - 400
-    - 120
-    - 350
-    - 180
-    - 450
-    - 200
-    - 250
+    - 72
+    - 87
+    - 89
+    - 103
+    - 104
+    - 105
     - 140
-    - 380
-    - 220
-    - 500
-    - 160
+    - 146
+    - 149
+    - 153
+    - 159
+    - 174
+    - 189
+    - 238
+    - 256
+    - 257
+    - 298
+    - 352
+    - 388
+    - 399
+    - 425
+    - 430
+    - 440
+    - 471
+    - 490
   n_samples: 2000
   noise_std: 1.0
 - name: synth9_piecewise_variable
@@ -106,21 +126,31 @@ datasets:
   seasonal_params:
     amplitude: 80.0
     periods:
-    - 100
-    - 300
-    - 150
-    - 400
-    - 120
-    - 350
-    - 180
-    - 450
-    - 200
-    - 250
+    - 72
+    - 87
+    - 89
+    - 103
+    - 104
+    - 105
     - 140
-    - 380
-    - 220
-    - 500
-    - 160
+    - 146
+    - 149
+    - 153
+    - 159
+    - 174
+    - 189
+    - 238
+    - 256
+    - 257
+    - 298
+    - 352
+    - 388
+    - 399
+    - 425
+    - 430
+    - 440
+    - 471
+    - 490
   n_samples: 2000
   noise_std: 1.0
 methods:
@@ -130,27 +160,73 @@ methods:
       window_size: 3
       error_percentile: 50
       trend_selection: auto
+  lgtd_linear:
+    enabled: true
+    params:
+      window_size: 3
+      error_percentile: 50
+  lgtd_lowess:
+    enabled: true
+    params:
+      window_size: 3
+      error_percentile: 50
+      lowess_frac: 0.1
   stl:
     enabled: true
     params:
       period: 120
-      seasonal: 7
+      seasonal: 13
+      robust: false
   robust_stl:
+    enabled: false
+    params:
+      period: 120
+      reg1: 10.0
+      reg2: 0.5
+      K: 2
+      H: 5
+      dn1: 1.0
+      dn2: 1.0
+      ds1: 50.0
+      ds2: 1.0
+  fast_robust_stl:
     enabled: true
     params:
       period: 120
-      reg1: 5.0
-      reg2: 0.1
-      K: 1
-      H: 2
-      dn1: 2.0
-      dn2: 2.0
-      ds1: 20.0
-      ds2: 2.0
+      reg1: 10.0
+      reg2: 0.5
+  str:
+    enabled: true
+    params:
+      seasonal_periods: [120]
+      trend_lambda: 100.0
+      seasonal_lambda: 1.0
+      robust: false
+      auto_params: false
+      n_trials: 20
+  online_stl:
+    enabled: true
+    params:
+      periods: [120]
+      lam: 0.3
+      init_window_ratio: 0.3
+  oneshot_stl:
+    enabled: true
+    params:
+      period: 120
+      shift_window: 0
+      init_ratio: 0.3
   astd:
     enabled: true
     params:
       seasonality_smoothing: 0.7
+      mode: batch
+  astd_online:
+    enabled: true
+    params:
+      seasonality_smoothing: 0.7
+      mode: online
+      init_window_size: 300
 metrics:
 - mse
 - mae
