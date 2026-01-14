@@ -26,7 +26,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from experiments.runners.experiment_runner import ExperimentRunner
-from LGTD.evaluation.metrics import compute_mae
+from lgtd.evaluation.metrics import compute_mae
 
 
 # Parameter search spaces for each method

@@ -13,7 +13,7 @@ import sys
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from LGTD import LGTD
+from lgtd import LGTD
 
 
 @pytest.fixture

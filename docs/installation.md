@@ -134,7 +134,7 @@ Verify installation:
 
 ```python
 # Test core module
-from LGTD import LGTD
+from lgtd import LGTD
 import numpy as np
 
 y = np.random.randn(100) + np.sin(np.linspace(0, 4*np.pi, 100))

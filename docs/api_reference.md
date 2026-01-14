@@ -9,7 +9,7 @@
 Main decomposition class implementing the Local-Global Trend Decomposition algorithm.
 
 ```python
-from LGTD import LGTD
+from lgtd import LGTD
 ```
 
 **Constructor:**
@@ -58,7 +58,7 @@ Decompose time series into trend, seasonal, and residual components.
 
 ```python
 import numpy as np
-from LGTD import LGTD
+from lgtd import LGTD
 
 # Generate synthetic time series
 t = np.linspace(0, 4*np.pi, 200)
@@ -149,7 +149,7 @@ else:
 
 ### Metrics Functions
 
-Located in `LGTD.evaluation.metrics`.
+Located in `lgtd.evaluation.metrics`.
 
 #### `compute_mse(ground_truth: dict, prediction: dict) -> dict`
 
@@ -165,7 +165,7 @@ Compute Mean Squared Error for each component.
 **Example:**
 
 ```python
-from LGTD.evaluation.metrics import compute_mse
+from lgtd.evaluation.metrics import compute_mse
 
 ground_truth = {
     'trend': y_true_trend,
@@ -211,7 +211,7 @@ Compute Peak Signal-to-Noise Ratio.
 
 ### Visualization Functions
 
-Located in `LGTD.evaluation.visualization`.
+Located in `lgtd.evaluation.visualization`.
 
 #### `plot_decomposition(y: np.ndarray, result: LGTDResult, title: str = None, figsize: tuple = (12, 8)) -> Figure`
 
@@ -229,7 +229,7 @@ Plot decomposition results in a stacked layout.
 **Example:**
 
 ```python
-from LGTD.evaluation.visualization import plot_decomposition
+from lgtd.evaluation.visualization import plot_decomposition
 import matplotlib.pyplot as plt
 
 fig = plot_decomposition(y, result, title="LGTD Decomposition")

@@ -44,7 +44,7 @@ $$\text{MSE}_{\text{total}} = \text{MSE}_{\text{trend}} + \text{MSE}_{\text{seas
 **Implementation:**
 
 ```python
-from LGTD.evaluation.metrics import compute_mse
+from lgtd.evaluation.metrics import compute_mse
 
 ground_truth = {
     'trend': y_true_trend,
@@ -90,7 +90,7 @@ $$\text{MAE}_{\text{total}} = \text{MAE}_{\text{trend}} + \text{MAE}_{\text{seas
 **Implementation:**
 
 ```python
-from LGTD.evaluation.metrics import compute_mae
+from lgtd.evaluation.metrics import compute_mae
 
 mae = compute_mae(ground_truth, prediction)
 print(f"Total MAE: {mae['total']:.4f}")
@@ -122,7 +122,7 @@ where $\bar{C}$ denotes mean of component $C$.
 **Implementation:**
 
 ```python
-from LGTD.evaluation.metrics import compute_correlation
+from lgtd.evaluation.metrics import compute_correlation
 
 corr = compute_correlation(ground_truth, prediction)
 print(f"Trend correlation: {corr['trend']:.4f}")
@@ -166,7 +166,7 @@ $$y_t^{\text{recon}} = T_t + S_t + R_t$$
 **Implementation:**
 
 ```python
-from LGTD.evaluation.metrics import compute_psnr
+from lgtd.evaluation.metrics import compute_psnr
 
 # Original series
 y = data['y']
@@ -325,8 +325,8 @@ w_stat, p_value = wilcoxon(mse_lgtd, mse_stl)
 Complete evaluation pipeline:
 
 ```python
-from LGTD import LGTD
-from LGTD.evaluation.metrics import compute_mse, compute_mae, compute_correlation, compute_psnr
+from lgtd import LGTD
+from lgtd.evaluation.metrics import compute_mse, compute_mae, compute_correlation, compute_psnr
 import numpy as np
 import time
 
@@ -480,4 +480,4 @@ plt.show()
 - Reconstruction error (validity)
 - Residual analysis (completeness)
 
-All metrics implemented in `LGTD.evaluation.metrics` module with unit tests ensuring correctness.
+All metrics implemented in `lgtd.evaluation.metrics` module with unit tests ensuring correctness.

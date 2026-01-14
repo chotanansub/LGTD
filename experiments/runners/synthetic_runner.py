@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional, List
 
 from experiments.runners.base_experiment import BaseExperiment
 from data.synthetic.generators import generate_synthetic_data
-from LGTD import LGTD
+from lgtd import LGTD
 from experiments.baselines.stl import STLDecomposer
 from experiments.baselines.robust_stl import RobustSTLDecomposer
 from experiments.baselines.fast_robust_stl import FastRobustSTLDecomposer

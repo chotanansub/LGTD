@@ -6,9 +6,9 @@ import numpy as np
 from typing import Optional, Literal, Dict, Any
 from dataclasses import dataclass
 
-from LGTD.decomposition.local_trend import LocalTrendDetector
-from LGTD.decomposition.seasonal import SeasonalExtractor
-from LGTD.decomposition.utils import (
+from lgtd.decomposition.local_trend import LocalTrendDetector
+from lgtd.decomposition.seasonal import SeasonalExtractor
+from lgtd.decomposition.utils import (
     select_trend_method,
     extract_linear_trend,
     extract_lowess_trend,

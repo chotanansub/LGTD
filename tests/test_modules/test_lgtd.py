@@ -2,8 +2,8 @@
 
 import pytest
 import numpy as np
-from LGTD import LGTD
-from LGTD.decomposition.lgtd import LGTDResult
+from lgtd import LGTD
+from lgtd.decomposition.lgtd import LGTDResult
 
 
 def test_lgtd_initialization():

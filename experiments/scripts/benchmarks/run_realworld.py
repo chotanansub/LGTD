@@ -15,7 +15,7 @@ from pathlib import Path
 # Add LGTD to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from LGTD import LGTD
+from lgtd import LGTD
 
 
 def load_dataset(dataset_name: str, n_points: int = 2500):

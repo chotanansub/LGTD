@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 import yaml
 
-from LGTD.evaluation.metrics import compute_mse, compute_mae
+from lgtd.evaluation.metrics import compute_mse, compute_mae
 
 
 class BaseExperiment:

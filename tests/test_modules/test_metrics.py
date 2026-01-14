@@ -2,7 +2,7 @@
 
 import pytest
 import numpy as np
-from LGTD.evaluation.metrics import (
+from lgtd.evaluation.metrics import (
     mean_squared_error,
     mean_absolute_error,
     root_mean_squared_error,

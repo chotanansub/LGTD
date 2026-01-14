@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Optional, Dict, Tuple
-from LGTD.decomposition.lgtd import LGTDResult
+from lgtd.decomposition.lgtd import LGTDResult
 
 
 def plot_decomposition(

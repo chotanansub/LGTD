@@ -19,7 +19,7 @@ plt.rcParams.update({
     'ytick.labelsize': 7,
     'axes.linewidth': 0.6,
     'lines.linewidth': 0.5,
-    'figure.dpi': 600
+    'figure.dpi': 300
 })
 
 MODEL_COLORS = {
@@ -123,7 +123,7 @@ def generate_polished_compact_plot(lb_path, kw_path, output_dir):
     )
     
     out_file = Path(output_dir) / "polished_diagnostics.png"
-    plt.savefig(out_file, bbox_inches='tight', dpi=600, facecolor='white')
+    plt.savefig(out_file, bbox_inches='tight', dpi=300, facecolor='white')
     print(f"Final PNG saved to: {out_file}")
 
 if __name__ == "__main__":

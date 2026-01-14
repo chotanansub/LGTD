@@ -13,7 +13,7 @@ import sys
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from LGTD.evaluation.metrics import (
+from lgtd.evaluation.metrics import (
     mean_squared_error,
     mean_absolute_error,
     root_mean_squared_error,

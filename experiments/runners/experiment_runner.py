@@ -16,9 +16,9 @@ from typing import List, Optional, Dict, Any
 import numpy as np
 import pandas as pd
 
-from LGTD import LGTD
-from LGTD.evaluation.metrics import compute_mse, compute_mae, compute_rmse, compute_correlation, compute_psnr
-from LGTD.evaluation.visualization import plot_decomposition
+from lgtd import LGTD
+from lgtd.evaluation.metrics import compute_mse, compute_mae, compute_rmse, compute_correlation, compute_psnr
+from lgtd.evaluation.visualization import plot_decomposition
 
 
 class ExperimentRunner:
@@ -428,7 +428,7 @@ class ExperimentRunner:
                         plot_dir = Path(config['evaluation']['plot_dir'])
                         plot_dir.mkdir(parents=True, exist_ok=True)
 
-                        from LGTD.decomposition.lgtd import LGTDResult
+                        from lgtd.decomposition.lgtd import LGTDResult
 
                         # Create LGTDResult object for plotting
                         plot_result = LGTDResult(

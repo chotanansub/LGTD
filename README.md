@@ -24,7 +24,7 @@ Core implementation of the LGTD decomposition algorithm.
 
 **Structure:**
 ```
-LGTD/
+lgtd/
 ├── decomposition/       # Core decomposition algorithms
 │   ├── lgtd.py         # Main LGTD implementation
 │   ├── local_trend.py  # Local trend analysis
@@ -83,7 +83,7 @@ See [docs/installation.md](docs/installation.md) for baseline method installatio
 ### Basic Usage
 
 ```python
-from LGTD import LGTD
+from lgtd import LGTD
 import numpy as np
 
 # Load time series data

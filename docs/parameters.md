@@ -253,8 +253,8 @@ For datasets with ground truth, perform grid search:
 
 ```python
 from itertools import product
-from LGTD import LGTD
-from LGTD.evaluation.metrics import compute_mse
+from lgtd import LGTD
+from lgtd.evaluation.metrics import compute_mse
 
 # Define parameter grid
 window_sizes = [2, 3, 5, 7]
@@ -285,7 +285,7 @@ print(f"Best parameters: window_size={best_params[0]}, error_percentile={best_pa
 For real-world data without ground truth:
 
 ```python
-from LGTD.evaluation.visualization import plot_decomposition
+from lgtd.evaluation.visualization import plot_decomposition
 
 # Try different configurations
 configs = [
