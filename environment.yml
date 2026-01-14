@@ -26,9 +26,3 @@ dependencies:
   - pytest-cov>=3.0.0
   - black>=22.0.0
   - flake8>=4.0.0
-
-  # Pip dependencies (packages not available in conda)
-  - pip
-  - pip:
-    - stldecompose>=0.0.5
-    - git+https://github.com/chotanansub/autotrend.git
