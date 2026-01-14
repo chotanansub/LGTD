@@ -34,15 +34,34 @@ MODEL_COLORS = {
     'STR': '#999999'
 }
 
+# Mapping from display names to file names
+MODEL_FILE_NAMES = {
+    'LGTD': 'LGTD',
+    'LGTD_Linear': 'LGTD_LINEAR',
+    'LGTD_LOWESS': 'LGTD_LOWESS',
+    'STL': 'STL',
+    'RobustSTL': 'ROBUST_STL',
+    'FastRobustSTL': 'FAST_ROBUST_STL',
+    'STR': 'STR',
+    'OnlineSTL': 'ONLINE_STL',
+    'OneShotSTL': 'ONESHOT_STL',
+    'ASTD': 'ASTD',
+    'ASTD_Online': 'ASTD_ONLINE'
+}
+
 def load_result_json(dataset_name, model_name, results_dir):
-    path = Path(results_dir) / dataset_name / f"{model_name}.json"
+    # Convert display name to file name
+    file_name = MODEL_FILE_NAMES.get(model_name, model_name)
+    path = Path(results_dir) / dataset_name / f"{file_name}.json"
     if not path.exists(): return None
     with open(path) as f:
         d = json.load(f)
     return {k: np.array(d[k]) for k in ['y', 'trend', 'seasonal', 'residual']}
 
 def load_result_npz(dataset_name, model_name, results_dir):
-    path = Path(results_dir) / dataset_name / f"{model_name}.npz"
+    # Convert display name to file name
+    file_name = MODEL_FILE_NAMES.get(model_name, model_name)
+    path = Path(results_dir) / dataset_name / f"{file_name}.npz"
     if not path.exists(): return None
     d = np.load(path)
     dataset_file = Path('data/synthetic/datasets') / f"{dataset_name}_data.json"
@@ -137,7 +156,7 @@ def plot_dataset_comparison(dataset_name, models, output_file, results_dir, colo
         if idx == 0: ax3.set_title('Residual')
 
     suffix = "_colorful.png" if colorful else ".png"
-    out_path = Path('experiments/results/synthetic/figures') / f"{Path(output_file).stem}{suffix}"
+    out_path = Path('experiments/results/figures/synthetic') / f"{Path(output_file).stem}{suffix}"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches='tight')
     plt.close()
@@ -174,7 +193,7 @@ def plot_single_model_all_datasets(model_name, datasets, output_file, results_di
         ax3.axhline(0, color='black', linestyle='--', linewidth=0.5, alpha=0.5)
 
     suffix = "_colorful.png" if colorful else ".png"
-    out_path = Path('experiments/results/synthetic/figures') / f"{Path(output_file).stem}{suffix}"
+    out_path = Path('experiments/results/figures/synthetic') / f"{Path(output_file).stem}{suffix}"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches='tight')
     plt.close()
@@ -185,7 +204,7 @@ def main():
     parser.add_argument('--mode', choices=['by-dataset', 'by-model', 'colorful', 'all'], default='all')
     parser.add_argument('--datasets', nargs='+', default=['synth1', 'synth2', 'synth3', 'synth4', 'synth5', 'synth6', 'synth7', 'synth8', 'synth9'])
     parser.add_argument('--models', nargs='+', default=['LGTD', 'STL', 'OnlineSTL', 'ASTD_Online', 'FastRobustSTL'])
-    parser.add_argument('--results-dir', default='experiments/results/synthetic/decompositions')
+    parser.add_argument('--results-dir', default='experiments/results/decompositions/synthetic')
 
     args = parser.parse_args()
     

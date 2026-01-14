@@ -200,7 +200,7 @@ class DatasetConfigSynchronizer:
                     "psnr"
                 ],
                 "save_plots": True,
-                "plot_dir": f"experiments/results/synthetic/plots/{dataset_name}"
+                "plot_dir": f"experiments/results/synthetic/figures/{dataset_name}"
             }
         }
 
