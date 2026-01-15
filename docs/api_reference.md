@@ -17,10 +17,11 @@ from lgtd import lgtd
 ```python
 LGTD(
     window_size: int = 3,
-    error_percentile: float = 50,
+    error_percentile: int = 50,
     trend_selection: str = 'auto',
     lowess_frac: float = 0.1,
-    threshold_r2: float = 0.9
+    threshold_r2: float = 0.92,
+    verbose: bool = False
 )
 ```
 
@@ -28,7 +29,7 @@ LGTD(
 
 - `window_size` (int, default=3): Local trend sliding window size. Larger values increase smoothness of local trend detection. Must be positive integer.
 
-- `error_percentile` (float, default=50): Percentile threshold for AutoTrend error filtering. Values in [0, 100]. Higher values retain more local trend segments.
+- `error_percentile` (int, default=50): Percentile threshold for AutoTrend error filtering. Values in [0, 100]. Higher values retain more local trend segments.
 
 - `trend_selection` (str, default='auto'): Global trend extraction method.
   - `'auto'`: Automatically select based on R² criterion (threshold_r2)
@@ -37,7 +38,9 @@ LGTD(
 
 - `lowess_frac` (float, default=0.1): LOWESS smoothing fraction. Fraction of data points used for local regression. Values in (0, 1]. Lower values follow data more closely.
 
-- `threshold_r2` (float, default=0.9): R² threshold for automatic trend selection. If linear regression achieves R² ≥ threshold, linear trend is selected; otherwise LOWESS is used. Values in [0, 1].
+- `threshold_r2` (float, default=0.92): R² threshold for automatic trend selection. If linear regression achieves R² ≥ threshold, linear trend is selected; otherwise LOWESS is used. Values in [0, 1].
+
+- `verbose` (bool, default=False): Print diagnostic information during decomposition process.
 
 **Methods:**
 
@@ -151,16 +154,108 @@ else:
 
 Located in `lgtd.evaluation.metrics`.
 
-#### `compute_mse(ground_truth: dict, prediction: dict) -> dict`
+#### Core Metric Functions
+
+##### `mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float`
+
+Calculate Mean Squared Error between true and predicted values.
+
+**Parameters:**
+- `y_true` (np.ndarray): Ground truth values.
+- `y_pred` (np.ndarray): Predicted values.
+
+**Returns:**
+- `float`: MSE value.
+
+##### `mean_absolute_error(y_true: np.ndarray, y_pred: np.ndarray) -> float`
+
+Calculate Mean Absolute Error between true and predicted values.
+
+**Parameters:**
+- `y_true` (np.ndarray): Ground truth values.
+- `y_pred` (np.ndarray): Predicted values.
+
+**Returns:**
+- `float`: MAE value.
+
+##### `root_mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float`
+
+Calculate Root Mean Squared Error between true and predicted values.
+
+**Parameters:**
+- `y_true` (np.ndarray): Ground truth values.
+- `y_pred` (np.ndarray): Predicted values.
+
+**Returns:**
+- `float`: RMSE value.
+
+##### `correlation_coefficient(y_true: np.ndarray, y_pred: np.ndarray) -> float`
+
+Calculate Pearson correlation coefficient between true and predicted values.
+
+**Parameters:**
+- `y_true` (np.ndarray): Ground truth values.
+- `y_pred` (np.ndarray): Predicted values.
+
+**Returns:**
+- `float`: Correlation coefficient (between -1 and 1).
+
+##### `peak_signal_noise_ratio(y_true: np.ndarray, y_pred: np.ndarray) -> float`
+
+Calculate Peak Signal-to-Noise Ratio.
+
+**Parameters:**
+- `y_true` (np.ndarray): Ground truth values.
+- `y_pred` (np.ndarray): Predicted values.
+
+**Returns:**
+- `float`: PSNR value in dB. Returns `inf` if MSE is 0.
+
+##### `align_component(gt: np.ndarray, pred: np.ndarray) -> np.ndarray`
+
+Align predicted component with ground truth by removing mean difference.
+
+Decomposition components are unique only up to a constant (you can add c to trend and subtract c from seasonal and still get the same y). This function aligns the predicted component to have the same mean as ground truth.
+
+**Parameters:**
+- `gt` (np.ndarray): Ground truth component.
+- `pred` (np.ndarray): Predicted component.
+
+**Returns:**
+- `np.ndarray`: Aligned predicted component.
+
+#### Component-wise Metric Functions
+
+##### `compute_decomposition_metrics(ground_truth: dict, result: dict, align_components: bool = True) -> dict`
+
+Compute comprehensive metrics for decomposition quality.
+
+**Parameters:**
+- `ground_truth` (dict): Dictionary with `'trend'`, `'seasonal'`, `'residual'` ground truth arrays.
+- `result` (dict): Dictionary with `'trend'`, `'seasonal'`, `'residual'` predictions.
+- `align_components` (bool, default=True): Whether to align components before computing metrics.
+
+**Returns:**
+- `dict`: Nested dictionary with metrics for each component. Structure:
+  ```python
+  {
+      'trend': {'mse': float, 'mae': float, 'rmse': float, 'correlation': float, 'psnr': float},
+      'seasonal': {...},
+      'residual': {...}
+  }
+  ```
+
+##### `compute_mse(ground_truth: dict, result: dict, align_components: bool = True) -> dict`
 
 Compute Mean Squared Error for each component.
 
 **Parameters:**
 - `ground_truth` (dict): Dictionary with keys `'trend'`, `'seasonal'`, `'residual'` containing ground truth arrays.
-- `prediction` (dict): Dictionary with same structure containing predicted arrays.
+- `result` (dict): Dictionary with same structure containing predicted arrays.
+- `align_components` (bool, default=True): Whether to align components before computing MSE.
 
 **Returns:**
-- `dict`: MSE for each component: `{'trend': float, 'seasonal': float, 'residual': float, 'total': float}`.
+- `dict`: MSE for each component: `{'trend': float, 'seasonal': float, 'residual': float}`.
 
 **Example:**
 
@@ -178,34 +273,56 @@ prediction = {
     'residual': result.residual
 }
 
-mse = compute_mse(ground_truth, prediction)
+mse = compute_mse(ground_truth, prediction, align_components=True)
 print(f"Trend MSE: {mse['trend']:.4f}")
 print(f"Seasonal MSE: {mse['seasonal']:.4f}")
-print(f"Total MSE: {mse['total']:.4f}")
+print(f"Residual MSE: {mse['residual']:.4f}")
 ```
 
-#### `compute_mae(ground_truth: dict, prediction: dict) -> dict`
+##### `compute_mae(ground_truth: dict, result: dict, align_components: bool = True) -> dict`
 
-Compute Mean Absolute Error for each component. Similar interface to `compute_mse`.
+Compute Mean Absolute Error for each component.
 
-#### `compute_correlation(ground_truth: dict, prediction: dict) -> dict`
+**Parameters:**
+- `ground_truth` (dict): Dictionary with ground truth components.
+- `result` (dict): Dictionary with predicted components.
+- `align_components` (bool, default=True): Whether to align components before computing MAE.
+
+**Returns:**
+- `dict`: MAE for each component: `{'trend': float, 'seasonal': float, 'residual': float}`.
+
+##### `compute_rmse(ground_truth: dict, result: dict) -> dict`
+
+Compute Root Mean Squared Error for each component.
+
+**Parameters:**
+- `ground_truth` (dict): Dictionary with ground truth components.
+- `result` (dict): Dictionary with predicted components.
+
+**Returns:**
+- `dict`: RMSE for each component: `{'trend': float, 'seasonal': float, 'residual': float}`.
+
+##### `compute_correlation(ground_truth: dict, result: dict) -> dict`
 
 Compute Pearson correlation coefficient for each component.
+
+**Parameters:**
+- `ground_truth` (dict): Dictionary with ground truth components.
+- `result` (dict): Dictionary with predicted components.
 
 **Returns:**
 - `dict`: Correlation for each component: `{'trend': float, 'seasonal': float, 'residual': float}`. Values in [-1, 1].
 
-#### `compute_psnr(ground_truth: np.ndarray, prediction: np.ndarray, data_range: float = None) -> float`
+##### `compute_psnr(ground_truth: dict, result: dict) -> dict`
 
-Compute Peak Signal-to-Noise Ratio.
+Compute Peak Signal-to-Noise Ratio for each component.
 
 **Parameters:**
-- `ground_truth` (np.ndarray): Ground truth signal.
-- `prediction` (np.ndarray): Predicted signal.
-- `data_range` (float, optional): Data range. If None, computed as `max(ground_truth) - min(ground_truth)`.
+- `ground_truth` (dict): Dictionary with ground truth components.
+- `result` (dict): Dictionary with predicted components.
 
 **Returns:**
-- `float`: PSNR in decibels (dB). Higher values indicate better reconstruction.
+- `dict`: PSNR for each component: `{'trend': float, 'seasonal': float, 'residual': float}`. Values in dB.
 
 ---
 
@@ -213,15 +330,19 @@ Compute Peak Signal-to-Noise Ratio.
 
 Located in `lgtd.evaluation.visualization`.
 
-#### `plot_decomposition(y: np.ndarray, result: LGTDResult, title: str = None, figsize: tuple = (12, 8)) -> Figure`
+#### `plot_decomposition(result: LGTDResult, ground_truth: dict = None, figsize: tuple = (14, 12), title: str = "Time Series Decomposition", show: bool = True, save_path: str = None, model_name: str = "LGTD", init_point: int = 0) -> Figure`
 
-Plot decomposition results in a stacked layout.
+Plot decomposition results with optional ground truth comparison in a stacked layout.
 
 **Parameters:**
-- `y` (np.ndarray): Original time series.
-- `result` (LGTDResult): Decomposition result.
-- `title` (str, optional): Figure title.
-- `figsize` (tuple, default=(12, 8)): Figure size in inches.
+- `result` (LGTDResult): LGTD decomposition result containing trend, seasonal, residual, and original series.
+- `ground_truth` (dict, optional): Dictionary with ground truth components (`'trend'`, `'seasonal'`, `'residual'`). If provided, plots both ground truth and estimated components.
+- `figsize` (tuple, default=(14, 12)): Figure size in inches (width, height).
+- `title` (str, default="Time Series Decomposition"): Figure title.
+- `show` (bool, default=True): Whether to display the plot immediately.
+- `save_path` (str, optional): Path to save the figure. If None, figure is not saved.
+- `model_name` (str, default="LGTD"): Name of the model for legend labels.
+- `init_point` (int, default=0): Index marking end of initialization period. Highlighted in gray on plots.
 
 **Returns:**
 - `matplotlib.figure.Figure`: Figure object containing four subplots (original, trend, seasonal, residual).
@@ -232,23 +353,100 @@ Plot decomposition results in a stacked layout.
 from lgtd.evaluation.visualization import plot_decomposition
 import matplotlib.pyplot as plt
 
-fig = plot_decomposition(y, result, title="LGTD Decomposition")
-plt.savefig("decomposition.png", dpi=300, bbox_inches='tight')
-plt.show()
+# Basic usage
+fig = plot_decomposition(result, title="LGTD Decomposition")
+
+# With ground truth comparison
+ground_truth = {
+    'trend': true_trend,
+    'seasonal': true_seasonal,
+    'residual': true_residual
+}
+fig = plot_decomposition(
+    result,
+    ground_truth=ground_truth,
+    save_path="decomposition.png",
+    show=False
+)
 ```
 
-#### `plot_comparison(ground_truth: dict, predictions: dict, labels: list, figsize: tuple = (15, 10)) -> Figure`
+#### `plot_comparison(ground_truth: dict, results_dict: dict, component: str = 'trend', figsize: tuple = (14, 6), title: str = None, show: bool = True, save_path: str = None) -> Figure`
 
-Compare multiple decomposition methods against ground truth.
+Plot comparison of multiple decomposition methods for a single component.
 
 **Parameters:**
-- `ground_truth` (dict): Ground truth components.
-- `predictions` (dict): Dictionary mapping method names to prediction dictionaries.
-- `labels` (list): Method names for legend.
-- `figsize` (tuple, default=(15, 10)): Figure size.
+- `ground_truth` (dict): Dictionary with ground truth components (`'trend'`, `'seasonal'`, `'residual'`).
+- `results_dict` (dict): Dictionary mapping method names to result dictionaries. Structure: `{'Method1': {'trend': ..., 'seasonal': ..., 'residual': ...}, 'Method2': {...}}`.
+- `component` (str, default='trend'): Component to plot. One of `'trend'`, `'seasonal'`, or `'residual'`.
+- `figsize` (tuple, default=(14, 6)): Figure size in inches (width, height).
+- `title` (str, optional): Plot title. If None, auto-generated as "{Component} Component Comparison".
+- `show` (bool, default=True): Whether to display the plot immediately.
+- `save_path` (str, optional): Path to save the figure. If None, figure is not saved.
 
 **Returns:**
-- `matplotlib.figure.Figure`: Figure with comparison plots for each component.
+- `matplotlib.figure.Figure`: Figure object with comparison plot.
+
+**Example:**
+
+```python
+from lgtd.evaluation.visualization import plot_comparison
+
+ground_truth = {
+    'trend': true_trend,
+    'seasonal': true_seasonal,
+    'residual': true_residual
+}
+
+results = {
+    'LGTD': {
+        'trend': lgtd_result.trend,
+        'seasonal': lgtd_result.seasonal,
+        'residual': lgtd_result.residual
+    },
+    'STL': {
+        'trend': stl_trend,
+        'seasonal': stl_seasonal,
+        'residual': stl_residual
+    }
+}
+
+# Compare trend components
+fig = plot_comparison(ground_truth, results, component='trend')
+```
+
+#### `plot_evaluation_bars(evaluation_df, metric: str = 'MSE', figsize: tuple = (12, 6), title: str = None, show: bool = True, save_path: str = None) -> Figure`
+
+Plot bar chart comparison of evaluation metrics across multiple methods.
+
+**Parameters:**
+- `evaluation_df`: Pandas DataFrame with evaluation results. Expected columns: `'model'`, `'metric'`, `'trend'`, `'seasonal'`, `'residual'`.
+- `metric` (str, default='MSE'): Metric to plot (e.g., `'MSE'`, `'MAE'`).
+- `figsize` (tuple, default=(12, 6)): Figure size in inches (width, height).
+- `title` (str, optional): Plot title. If None, auto-generated as "{Metric} Comparison Across Methods".
+- `show` (bool, default=True): Whether to display the plot immediately.
+- `save_path` (str, optional): Path to save the figure. If None, figure is not saved.
+
+**Returns:**
+- `matplotlib.figure.Figure`: Figure object with bar chart.
+
+**Example:**
+
+```python
+from lgtd.evaluation.visualization import plot_evaluation_bars
+import pandas as pd
+
+# Create evaluation DataFrame
+eval_data = {
+    'model': ['LGTD', 'STL', 'Prophet'],
+    'metric': ['MSE', 'MSE', 'MSE'],
+    'trend': [0.15, 0.23, 0.18],
+    'seasonal': [0.42, 0.56, 0.48],
+    'residual': [0.98, 1.12, 1.05]
+}
+df = pd.DataFrame(eval_data)
+
+fig = plot_evaluation_bars(df, metric='MSE')
+```
 
 ---
 
@@ -256,40 +454,100 @@ Compare multiple decomposition methods against ground truth.
 
 ### Data Generators
 
-Located in `data.generators`.
+**Note:** Data generators are located in `data/synthetic/generators.py` and are used for research and testing purposes. They are **not** part of the installed `lgtd` package.
 
-#### `generate_synthetic_data(trend_type: str, period_type: str, n_samples: int, noise_level: float, **kwargs) -> dict`
+#### `generate_synthetic_data(n: int = 2000, trend_type: str = 'linear', seasonality_type: str = 'fixed', seasonal_params: dict = None, residual_std: float = 1.0, seed: int = None) -> dict`
 
-Generate synthetic time series with known ground truth components.
+Unified synthetic data generator for time series with known ground truth components.
 
 **Parameters:**
-- `trend_type` (str): Type of trend ('linear', 'polynomial', 'exponential', 'none').
-- `period_type` (str): Type of periodicity ('fixed', 'variable', 'multiple', 'none').
-- `n_samples` (int): Number of time steps.
-- `noise_level` (float): Standard deviation of Gaussian noise.
-- `**kwargs`: Additional parameters specific to trend/period types.
+- `n` (int, default=2000): Number of time points.
+- `trend_type` (str, default='linear'): Type of trend. Options:
+  - `'linear'`: Linear trend with configurable slope
+  - `'inverted_v'`: Inverted-V shaped trend (rises then falls)
+  - `'piecewise'`: Piecewise linear trend with multiple segments
+- `seasonality_type` (str, default='fixed'): Type of seasonality. Options:
+  - `'fixed'`: Fixed-period seasonal pattern
+  - `'transitive'`: Period transitions between two values
+  - `'variable'`: Variable periods across different cycles
+- `seasonal_params` (dict, optional): Dictionary with seasonality parameters:
+  - For `'fixed'`: `{'period': int, 'amplitude': float}`
+  - For `'transitive'`: `{'main_period': int, 'transition_period': int, 'amplitude': float}`
+  - For `'variable'`: `{'periods': List[int], 'amplitude': float}`
+- `residual_std` (float, default=1.0): Standard deviation of Gaussian noise.
+- `seed` (int, optional): Random seed for reproducibility.
 
 **Returns:**
-- `dict`: Contains keys `'y'`, `'trend'`, `'seasonal'`, `'residual'`, `'period'`.
+- `dict`: Dictionary containing:
+  - `'time'` (np.ndarray): Time array
+  - `'y'` (np.ndarray): Combined time series (trend + seasonal + residual)
+  - `'trend'` (np.ndarray): Trend component
+  - `'seasonal'` (np.ndarray): Seasonal component
+  - `'residual'` (np.ndarray): Noise/residual component
+  - `'config'` (dict): Configuration used for generation
 
 **Example:**
 
 ```python
-from data.generators import generate_synthetic_data
+import sys
+sys.path.append('data/synthetic')
+from generators import generate_synthetic_data
 
+# Generate data with fixed period
 data = generate_synthetic_data(
+    n=500,
     trend_type='linear',
-    period_type='fixed',
-    n_samples=500,
-    noise_level=1.0,
-    period=24,
-    amplitude=10.0
+    seasonality_type='fixed',
+    seasonal_params={'period': 24, 'amplitude': 10.0},
+    residual_std=1.0,
+    seed=42
 )
 
 y = data['y']
 true_trend = data['trend']
 true_seasonal = data['seasonal']
+true_residual = data['residual']
 ```
+
+#### Additional Generator Functions
+
+##### `generate_linear_trend(time: np.ndarray, slope: float = 0.02) -> np.ndarray`
+
+Generate linear trend component.
+
+##### `generate_inverted_v_trend(time: np.ndarray, peak_position: float = 0.6, max_height: float = 100.0, curve_sharpness: float = 3.0) -> np.ndarray`
+
+Generate inverted-V shaped trend.
+
+##### `generate_piecewise_trend(time: np.ndarray, n_segments: int = 4, slopes: List[float] = None) -> np.ndarray`
+
+Generate piecewise linear trend with multiple segments.
+
+##### `generate_fixed_period_seasonality(time: np.ndarray, period: int, amplitude: float = 50.0) -> np.ndarray`
+
+Generate fixed-period seasonal component using sine wave.
+
+##### `generate_transitive_period_seasonality(time: np.ndarray, main_period: int, transition_period: int, transition_start_ratio: float = 0.4, transition_end_ratio: float = 0.6, amplitude: float = 50.0) -> np.ndarray`
+
+Generate seasonal component with period transition.
+
+##### `generate_variable_period_seasonality(time: np.ndarray, periods: List[int], amplitude: float = 50.0) -> np.ndarray`
+
+Generate seasonal component with variable periods across cycles.
+
+#### Convenience Functions
+
+##### `generate_trend_series(n: int = 2000, trend_type: str = 'linear', noise_std: float = 1.0, seed: int = None) -> dict`
+
+Generate time series with only trend component (no seasonality).
+
+##### `generate_seasonal_series(n: int = 2000, period: int = 120, amplitude: float = 50.0, noise_std: float = 1.0, seed: int = None) -> dict`
+
+Generate time series with only seasonal component (no trend).
+
+##### `generate_trend_seasonal_series(n: int = 2000, trend_type: str = 'linear', period: int = 120, amplitude: float = 50.0, noise_std: float = 1.0, seed: int = None) -> dict`
+
+Generate time series with both trend and seasonal components.
 
 ---
 
