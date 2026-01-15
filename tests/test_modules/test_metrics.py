@@ -98,9 +98,9 @@ def test_compute_mse():
     assert 'trend' in mse
     assert 'seasonal' in mse
     assert 'residual' in mse
-    assert mse['trend'] == 0.0
-    assert mse['seasonal'] == 0.0
-    assert mse['residual'] == 0.0
+    assert np.isclose(mse['trend'], 0.0, atol=1e-10)
+    assert np.isclose(mse['seasonal'], 0.0, atol=1e-10)
+    assert np.isclose(mse['residual'], 0.0, atol=1e-10)
 
 
 def test_compute_mae():
@@ -117,14 +117,14 @@ def test_compute_mae():
         'residual': np.array([0.02, 0.03, 0.04, 0.05, 0.06])
     }
 
-    mae = compute_mae(ground_truth, result)
+    mae = compute_mae(ground_truth, result, align_components=False)
 
     assert 'trend' in mae
     assert 'seasonal' in mae
     assert 'residual' in mae
-    assert mae['trend'] == 1.0
-    assert mae['seasonal'] == 0.1
-    assert np.isclose(mae['residual'], 0.01)
+    assert np.isclose(mae['trend'], 1.0, atol=1e-10)
+    assert np.isclose(mae['seasonal'], 0.1, atol=1e-10)
+    assert np.isclose(mae['residual'], 0.01, atol=1e-10)
 
 
 def test_compute_decomposition_metrics():
