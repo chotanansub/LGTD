@@ -1,55 +1,37 @@
-.DS_Store
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual environments
-venv/
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Test outputs (in tests directory)
+tests/htmlcov/
+tests/log/
+tests/.pytest_cache/
+tests/.coverage
+
+
+!tests/log/.gitkeep
+
+# Environments
 env/
-ENV/
+venv/
+.venv/
 
 # IDE
 .vscode/
 .idea/
-.claude/
 *.swp
-*.swo
-*~
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb_checkpoints
 
 # OS
 .DS_Store
-Thumbs.db
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Temporary scripts
-check_plot_legends.py
-
-experiments/results/**/*.json
-experiments/results/**/*.csv
-experiments/results/**/*.png
+# Project specific
+experiments/results/
+data/cache/
