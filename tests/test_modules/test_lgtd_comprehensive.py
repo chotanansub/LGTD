@@ -13,7 +13,7 @@ import sys
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from lgtd import LGTD
+from lgtd import lgtd
 
 
 @pytest.fixture
@@ -66,7 +66,7 @@ class TestLGTDInitialization:
 
     def test_default_init(self):
         """Test default initialization."""
-        model = LGTD()
+        model = lgtd()
 
         assert model.window_size == 3
         assert model.error_percentile == 50
@@ -74,7 +74,7 @@ class TestLGTDInitialization:
 
     def test_custom_init(self):
         """Test custom parameter initialization."""
-        model = LGTD(
+        model = lgtd(
             window_size=5,
             error_percentile=30,
             trend_selection='linear'
@@ -87,23 +87,23 @@ class TestLGTDInitialization:
     def test_invalid_window_size(self):
         """Test invalid window size raises error."""
         with pytest.raises((ValueError, AssertionError)):
-            LGTD(window_size=0)
+            lgtd(window_size=0)
 
         with pytest.raises((ValueError, AssertionError)):
-            LGTD(window_size=-1)
+            lgtd(window_size=-1)
 
     def test_invalid_percentile(self):
         """Test invalid percentile raises error."""
         with pytest.raises((ValueError, AssertionError)):
-            LGTD(error_percentile=-10)
+            lgtd(error_percentile=-10)
 
         with pytest.raises((ValueError, AssertionError)):
-            LGTD(error_percentile=150)
+            lgtd(error_percentile=150)
 
     def test_invalid_trend_selection(self):
         """Test invalid trend selection raises error."""
         with pytest.raises((ValueError, AssertionError)):
-            LGTD(trend_selection='invalid_method')
+            lgtd(trend_selection='invalid_method')
 
 
 class TestLGTDDecomposition:
@@ -111,7 +111,7 @@ class TestLGTDDecomposition:
 
     def test_basic_decomposition(self, simple_data):
         """Test basic decomposition."""
-        model = LGTD()
+        model = lgtd()
         result = model.fit_transform(simple_data['y'])
 
         # Check output structure
@@ -127,7 +127,7 @@ class TestLGTDDecomposition:
 
     def test_decomposition_reconstruction(self, simple_data):
         """Test decomposition components sum to original."""
-        model = LGTD()
+        model = lgtd()
         result = model.fit_transform(simple_data['y'])
 
         reconstructed = result.trend + result.seasonal + result.residual
@@ -135,7 +135,7 @@ class TestLGTDDecomposition:
 
     def test_trend_recovery_linear(self, simple_data):
         """Test trend recovery for linear trend."""
-        model = LGTD(trend_selection='linear')
+        model = lgtd(trend_selection='linear')
         result = model.fit_transform(simple_data['y'])
 
         # Trend should be reasonably close to true trend
@@ -144,7 +144,7 @@ class TestLGTDDecomposition:
 
     def test_trend_recovery_lowess(self, simple_data):
         """Test trend recovery with LOWESS."""
-        model = LGTD(trend_selection='lowess')
+        model = lgtd(trend_selection='lowess')
         result = model.fit_transform(simple_data['y'])
 
         # LOWESS should capture trend
@@ -153,7 +153,7 @@ class TestLGTDDecomposition:
 
     def test_trend_selection_auto(self, simple_data):
         """Test auto trend selection."""
-        model = LGTD(trend_selection='auto')
+        model = lgtd(trend_selection='auto')
         result = model.fit_transform(simple_data['y'])
 
         # Should select a method and decompose
@@ -167,7 +167,7 @@ class TestLGTDDecomposition:
 
     def test_seasonal_extraction(self, simple_data):
         """Test seasonal component extraction."""
-        model = LGTD()
+        model = lgtd()
         result = model.fit_transform(simple_data['y'])
 
         # Seasonal should have near-zero mean (relaxed tolerance)
@@ -195,7 +195,7 @@ class TestLGTDEdgeCases:
         np.random.seed(42)
         y = np.random.randn(10)
 
-        model = LGTD()
+        model = lgtd()
         result = model.fit_transform(y)
 
         # Should handle short series
@@ -206,7 +206,7 @@ class TestLGTDEdgeCases:
         """Test with constant time series."""
         y = np.ones(100) * 5.0
 
-        model = LGTD()
+        model = lgtd()
         result = model.fit_transform(y)
 
         # Trend should be approximately constant
@@ -221,7 +221,7 @@ class TestLGTDEdgeCases:
         y = np.random.randn(100)
         y[50] = np.nan
 
-        model = LGTD()
+        model = lgtd()
 
         # Should either handle NaNs or raise informative error
         try:
@@ -244,7 +244,7 @@ class TestLGTDEdgeCases:
 
         y = trend + seasonal + noise
 
-        model = LGTD()
+        model = lgtd()
         result = model.fit_transform(y)
 
         # Should still decompose
@@ -261,7 +261,7 @@ class TestLGTDWindowSize:
 
         results = []
         for ws in window_sizes:
-            model = LGTD(window_size=ws)
+            model = lgtd(window_size=ws)
             result = model.fit_transform(simple_data['y'])
             results.append(result)
 
@@ -287,7 +287,7 @@ class TestLGTDPercentile:
 
         results = []
         for p in percentiles:
-            model = LGTD(error_percentile=p)
+            model = lgtd(error_percentile=p)
             result = model.fit_transform(simple_data['y'])
             results.append(result)
 
@@ -299,12 +299,12 @@ class TestLGTDPercentile:
     def test_extreme_percentiles(self, simple_data):
         """Test with extreme percentile values."""
         # Very low percentile
-        model_low = LGTD(error_percentile=5)
+        model_low = lgtd(error_percentile=5)
         result_low = model_low.fit_transform(simple_data['y'])
         assert result_low is not None
 
         # Very high percentile
-        model_high = LGTD(error_percentile=95)
+        model_high = lgtd(error_percentile=95)
         result_high = model_high.fit_transform(simple_data['y'])
         assert result_high is not None
 
@@ -314,7 +314,7 @@ class TestLGTDComplexData:
 
     def test_non_linear_trend(self, complex_data):
         """Test with non-linear trend."""
-        model = LGTD(trend_selection='lowess')
+        model = lgtd(trend_selection='lowess')
         result = model.fit_transform(complex_data['y'])
 
         # LOWESS should handle non-linear trend better
@@ -326,7 +326,7 @@ class TestLGTDComplexData:
 
     def test_multiple_seasonalities(self, complex_data):
         """Test with multiple seasonal components."""
-        model = LGTD()
+        model = lgtd()
         result = model.fit_transform(complex_data['y'])
 
         # Should still decompose successfully
@@ -351,7 +351,7 @@ class TestLGTDComplexData:
         noise = np.random.normal(0, 0.5, n)
         y = trend + seasonal + noise
 
-        model = LGTD()
+        model = lgtd()
         result = model.fit_transform(y)
 
         # Should still decompose

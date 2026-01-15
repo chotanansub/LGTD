@@ -2,13 +2,13 @@
 
 import pytest
 import numpy as np
-from lgtd import LGTD
+from lgtd import lgtd
 from lgtd.decomposition.lgtd import LGTDResult
 
 
 def test_lgtd_initialization():
     """Test LGTD can be initialized."""
-    model = LGTD()
+    model = lgtd()
     assert model is not None
     assert model.window_size == 3
     assert model.error_percentile == 50
@@ -17,7 +17,7 @@ def test_lgtd_initialization():
 
 def test_lgtd_initialization_with_params():
     """Test LGTD initialization with custom parameters."""
-    model = LGTD(
+    model = lgtd(
         window_size=5,
         error_percentile=75,
         trend_selection='linear',
@@ -35,7 +35,7 @@ def test_lgtd_fit_transform():
     t = np.arange(100)
     data = 0.5 * t + 10 * np.sin(2 * np.pi * t / 12)
 
-    model = LGTD()
+    model = lgtd()
     result = model.fit_transform(data)
 
     assert isinstance(result, LGTDResult)
@@ -52,7 +52,7 @@ def test_lgtd_decomposition_components_sum():
     t = np.arange(100)
     data = 0.5 * t + 10 * np.sin(2 * np.pi * t / 12) + np.random.normal(0, 0.1, 100)
 
-    model = LGTD()
+    model = lgtd()
     result = model.fit_transform(data)
 
     # Check that trend + seasonal + residual ≈ original
@@ -69,7 +69,7 @@ def test_lgtd_with_noise():
     noise = np.random.normal(0, 2, 200)
     data = trend + seasonal + noise
 
-    model = LGTD(window_size=3, verbose=False)
+    model = lgtd(window_size=3, verbose=False)
     result = model.fit_transform(data)
 
     # Basic sanity checks
@@ -85,7 +85,7 @@ def test_lgtd_properties():
     t = np.arange(50)
     data = 0.5 * t + 5 * np.sin(2 * np.pi * t / 12)
 
-    model = LGTD()
+    model = lgtd()
     model.fit_transform(data)
 
     assert model.trend is not None
@@ -99,7 +99,7 @@ def test_lgtd_with_linear_trend():
     t = np.arange(100)
     data = 2 * t + np.random.normal(0, 1, 100)
 
-    model = LGTD(trend_selection='linear')
+    model = lgtd(trend_selection='linear')
     result = model.fit_transform(data)
 
     assert result.trend_info['method'] == 'linear'
@@ -113,7 +113,7 @@ def test_lgtd_with_lowess_trend():
     # Non-linear trend
     data = 0.01 * t**2 + np.random.normal(0, 1, 100)
 
-    model = LGTD(trend_selection='lowess', lowess_frac=0.3)
+    model = lgtd(trend_selection='lowess', lowess_frac=0.3)
     result = model.fit_transform(data)
 
     assert result.trend_info['method'] == 'lowess'
@@ -121,7 +121,7 @@ def test_lgtd_with_lowess_trend():
 
 def test_lgtd_invalid_input():
     """Test LGTD with invalid input."""
-    model = LGTD()
+    model = lgtd()
 
     # 2D array should raise error
     with pytest.raises(ValueError):
@@ -130,7 +130,7 @@ def test_lgtd_invalid_input():
 
 def test_lgtd_empty_input():
     """Test LGTD with empty input."""
-    model = LGTD()
+    model = lgtd()
     data = np.array([])
 
     # Should handle gracefully or raise appropriate error

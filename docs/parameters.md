@@ -178,7 +178,7 @@ Low when trend is clearly linear ($R^2 > 0.95$) or clearly non-linear ($R^2 < 0.
 Suitable for most applications with unknown characteristics:
 
 ```python
-model = LGTD(
+model = lgtd(
     window_size=3,
     error_percentile=50,
     trend_selection='auto',
@@ -192,7 +192,7 @@ model = LGTD(
 Hourly or minutely measurements with short periods:
 
 ```python
-model = LGTD(
+model = lgtd(
     window_size=5,
     error_percentile=50,
     trend_selection='auto',
@@ -206,7 +206,7 @@ model = LGTD(
 Low signal-to-noise ratio or irregular patterns:
 
 ```python
-model = LGTD(
+model = lgtd(
     window_size=3,
     error_percentile=60,
     trend_selection='auto',
@@ -220,7 +220,7 @@ model = LGTD(
 Prioritize speed over flexibility:
 
 ```python
-model = LGTD(
+model = lgtd(
     window_size=3,
     error_percentile=50,
     trend_selection='linear',
@@ -234,7 +234,7 @@ model = LGTD(
 Known complex trend behavior:
 
 ```python
-model = LGTD(
+model = lgtd(
     window_size=3,
     error_percentile=50,
     trend_selection='lowess',
@@ -253,7 +253,7 @@ For datasets with ground truth, perform grid search:
 
 ```python
 from itertools import product
-from lgtd import LGTD
+from lgtd import lgtd
 from lgtd.evaluation.metrics import compute_mse
 
 # Define parameter grid
@@ -264,7 +264,7 @@ best_mse = float('inf')
 best_params = None
 
 for w, p in product(window_sizes, error_percentiles):
-    model = LGTD(window_size=w, error_percentile=p)
+    model = lgtd(window_size=w, error_percentile=p)
     result = model.fit_transform(y)
 
     mse = compute_mse(ground_truth, {
@@ -295,7 +295,7 @@ configs = [
 ]
 
 for config in configs:
-    model = LGTD(**config)
+    model = lgtd(**config)
     result = model.fit_transform(y)
     plot_decomposition(y, result, title=str(config))
 ```
@@ -316,7 +316,7 @@ tscv = TimeSeriesSplit(n_splits=5)
 
 for train_idx, test_idx in tscv.split(y):
     y_train = y[train_idx]
-    model = LGTD(window_size=3, error_percentile=50)
+    model = lgtd(window_size=3, error_percentile=50)
     result = model.fit_transform(y_train)
     # Evaluate decomposition quality on training fold
 ```

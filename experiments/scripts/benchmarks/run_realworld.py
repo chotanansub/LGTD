@@ -15,7 +15,7 @@ from pathlib import Path
 # Add LGTD to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lgtd import LGTD
+from lgtd import lgtd
 
 
 def load_dataset(dataset_name: str, n_points: int = 2500):
@@ -48,7 +48,7 @@ def load_dataset(dataset_name: str, n_points: int = 2500):
 
 def run_lgtd(data, params):
     """Run LGTD decomposition."""
-    lgtd = LGTD(
+    lgtd = lgtd(
         window_size=params.get('window_size', 3),
         error_percentile=params.get('error_percentile', 40),
         trend_selection=params.get('trend_selection', 'auto'),

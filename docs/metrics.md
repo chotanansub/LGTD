@@ -325,7 +325,7 @@ w_stat, p_value = wilcoxon(mse_lgtd, mse_stl)
 Complete evaluation pipeline:
 
 ```python
-from lgtd import LGTD
+from lgtd import lgtd
 from lgtd.evaluation.metrics import compute_mse, compute_mae, compute_correlation, compute_psnr
 import numpy as np
 import time
@@ -339,7 +339,7 @@ true_residual = data['residual']
 
 # Decompose with timing
 start_time = time.time()
-model = LGTD()
+model = lgtd()
 result = model.fit_transform(y)
 execution_time = time.time() - start_time
 

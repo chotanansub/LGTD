@@ -9,7 +9,7 @@
 Main decomposition class implementing the Local-Global Trend Decomposition algorithm.
 
 ```python
-from lgtd import LGTD
+from lgtd import lgtd
 ```
 
 **Constructor:**
@@ -58,7 +58,7 @@ Decompose time series into trend, seasonal, and residual components.
 
 ```python
 import numpy as np
-from lgtd import LGTD
+from lgtd import lgtd
 
 # Generate synthetic time series
 t = np.linspace(0, 4*np.pi, 200)
@@ -68,7 +68,7 @@ noise = np.random.normal(0, 1, 200)
 y = trend + seasonal + noise
 
 # Decompose with default parameters
-model = LGTD()
+model = lgtd()
 result = model.fit_transform(y)
 
 # Access components

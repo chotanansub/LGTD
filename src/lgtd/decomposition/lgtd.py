@@ -37,18 +37,18 @@ class LGTDResult:
     trend_info: Dict[str, Any]
 
 
-class LGTD:
+class lgtd:
     """
     Local Global Trend Decomposition.
 
-    LGTD decomposes time series into trend, seasonal, and residual components
+    lgtd decomposes time series into trend, seasonal, and residual components
     by combining:
     1. Global trend extraction (linear or LOWESS)
     2. Local linear trend analysis for seasonality (using AutoTrend)
     3. Residual calculation
 
     Example:
-        >>> from lgtd import LGTD
+        >>> from lgtd import lgtd
         >>> import numpy as np
         >>>
         >>> # Generate sample data
@@ -56,7 +56,7 @@ class LGTD:
         >>> data = 0.5 * t + 10 * np.sin(2 * np.pi * t / 12) + np.random.normal(0, 1, 100)
         >>>
         >>> # Decompose
-        >>> model = LGTD()
+        >>> model = lgtd()
         >>> result = model.fit_transform(data)
         >>>
         >>> # Access components
@@ -75,7 +75,7 @@ class LGTD:
         verbose: bool = False
     ):
         """
-        Initialize LGTD decomposition model.
+        Initialize lgtd decomposition model.
 
         Args:
             window_size: Window size for local linear trend detection
@@ -146,9 +146,9 @@ class LGTD:
 
         return global_trend, trend_info
 
-    def fit(self, data: np.ndarray) -> 'LGTD':
+    def fit(self, data: np.ndarray) -> 'lgtd':
         """
-        Fit LGTD model to data.
+        Fit lgtd model to data.
 
         Args:
             data: Input time series array
@@ -163,7 +163,7 @@ class LGTD:
         """
         Transform data using fitted model.
 
-        Note: Currently, LGTD requires fitting for each dataset.
+        Note: Currently, lgtd requires fitting for each dataset.
         This method is provided for API consistency.
 
         Args:
@@ -198,7 +198,7 @@ class LGTD:
 
         if self.verbose:
             print("="*60)
-            print("LGTD Decomposition")
+            print("lgtd Decomposition")
             print("="*60)
             print(f"Data length: {len(seq)}")
             print(f"Window size: {self.window_size}")

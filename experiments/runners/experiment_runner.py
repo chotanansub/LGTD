@@ -16,7 +16,7 @@ from typing import List, Optional, Dict, Any
 import numpy as np
 import pandas as pd
 
-from lgtd import LGTD
+from lgtd import lgtd
 from lgtd.evaluation.metrics import compute_mse, compute_mae, compute_rmse, compute_correlation, compute_psnr
 from lgtd.evaluation.visualization import plot_decomposition
 
@@ -117,7 +117,7 @@ class ExperimentRunner:
         """Run LGTD or its variants."""
         start_time = time.time()
 
-        model = LGTD(**params)
+        model = lgtd(**params)
         result = model.fit_transform(data)
 
         elapsed_time = time.time() - start_time

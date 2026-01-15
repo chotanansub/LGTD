@@ -8,6 +8,6 @@ with seasonal pattern extraction.
 __version__ = "0.1.0"
 __author__ = "Chotanan Subscription"
 
-from lgtd.decomposition.lgtd import LGTD
+from lgtd.decomposition.lgtd import lgtd
 
-__all__ = ["LGTD"]
+__all__ = ["lgtd"]

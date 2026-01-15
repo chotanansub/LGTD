@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional, List
 
 from experiments.runners.base_experiment import BaseExperiment
 from data.synthetic.generators import generate_synthetic_data
-from lgtd import LGTD
+from lgtd import lgtd
 from experiments.baselines.stl import STLDecomposer
 from experiments.baselines.robust_stl import RobustSTLDecomposer
 from experiments.baselines.fast_robust_stl import FastRobustSTLDecomposer
@@ -66,7 +66,7 @@ class SyntheticExperimentRunner(BaseExperiment):
 
     def run_lgtd(self, dataset: Dict[str, Any], **params) -> Dict[str, np.ndarray]:
         """Run LGTD decomposition."""
-        model = LGTD(**params)
+        model = lgtd(**params)
         result = model.fit_transform(dataset['data']['y'])
 
         return {
@@ -120,7 +120,7 @@ class SyntheticExperimentRunner(BaseExperiment):
     def run_lgtd_linear(self, dataset: Dict[str, Any], **params) -> Dict[str, np.ndarray]:
         """Run LGTD with linear trend."""
         params['trend_selection'] = 'linear'
-        model = LGTD(**params)
+        model = lgtd(**params)
         result = model.fit_transform(dataset['data']['y'])
         return {
             'time': dataset['data']['time'],
@@ -133,7 +133,7 @@ class SyntheticExperimentRunner(BaseExperiment):
     def run_lgtd_lowess(self, dataset: Dict[str, Any], **params) -> Dict[str, np.ndarray]:
         """Run LGTD with LOWESS trend."""
         params['trend_selection'] = 'lowess'
-        model = LGTD(**params)
+        model = lgtd(**params)
         result = model.fit_transform(dataset['data']['y'])
         return {
             'time': dataset['data']['time'],
