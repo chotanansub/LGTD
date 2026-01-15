@@ -1,10 +1,11 @@
+# conda env create -f environment.yml
 name: lgtd
 channels:
   - conda-forge
   - defaults
 dependencies:
   # Python
-  - python>=3.8
+  - python>=3.8,<3.13
 
   # Core dependencies
   - numpy>=1.21.0
@@ -31,4 +32,4 @@ dependencies:
   - pip
   - pip:
     - stldecompose>=0.0.5
-    - git+https://github.com/chotanansub/autotrend.git
+    - autotrend>=0.2.4
