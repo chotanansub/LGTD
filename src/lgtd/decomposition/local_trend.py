@@ -4,14 +4,7 @@ Local trend detection using AutoTrend module.
 
 import numpy as np
 from typing import Dict, Any
-
-try:
-    from autotrend import decompose_llt
-except ImportError:
-    raise ImportError(
-        "AutoTrend is required. Install from: "
-        "https://github.com/chotanansub/autotrend"
-    )
+from autotrend import decompose_llt
 
 
 class LocalTrendDetector:
