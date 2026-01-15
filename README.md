@@ -1,201 +1,189 @@
-# LGTD: Local–Global Trend Decomposition for Season-Length–Free Time Series Analysis
+# LGTD: Local–Global Trend Decomposition
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-118%20passed-brightgreen.svg)]()
+[![PyPI version](https://img.shields.io/pypi/v/lgtd.svg)](https://pypi.org/project/lgtd/)
 
-Official implementation of **LGTD** (Local-Global Trend Decomposition), a season-length-free time series decomposition method.
+**Season-length-free time series decomposition.**
 
-## Overview
+LGTD (Local–Global Trend Decomposition) is a principled method for decomposing a univariate time series into **trend**, **seasonal**, and **residual** components *without requiring prior specification of seasonal periods*. In contrast to classical decomposition techniques—such as STL, X-11, and MSTL—which assume fixed or user-specified seasonal lengths, LGTD automatically identifies and aggregates repeating structures of arbitrary and potentially time-varying scales.
 
-LGTD addresses the limitation of traditional decomposition methods (STL, X-11, MSTL) that require prior knowledge of seasonal period lengths. The method combines global trend extraction with local trend analysis to automatically identify and extract seasonal patterns without period specification.
+---
 
-**Key Features:**
-- No prior period specification required
-- Automatic trend model selection (linear/LOWESS)
-- Handles multiple periodicities
-- Robust to noise and irregular patterns
+## Motivation
 
-## Repository Contents
+Many real-world time series exhibit seasonality that is non-stationary, intermittent, or composed of multiple overlapping cycles. Period-dependent methods are brittle in such settings, as incorrect or misspecified periods can substantially degrade decomposition quality. LGTD is designed to address this limitation by eliminating the need for explicit period selection.
 
-### 1. LGTD Module
+```python
+# STL requires an explicit seasonal period
+from statsmodels.tsa.seasonal import STL
+stl = STL(y, seasonal=24)  # ❌ requires prior knowledge of the period
+result = stl.fit()
 
-Core implementation of the LGTD decomposition algorithm.
-
-**Structure:**
-```
-lgtd/
-├── decomposition/       # Core decomposition algorithms
-│   ├── lgtd.py         # Main LGTD implementation
-│   ├── local_trend.py  # Local trend analysis
-│   └── seasonal.py     # Seasonal extraction
-└── evaluation/         # Metrics and visualization
-    ├── metrics.py      # MSE, MAE, correlation, PSNR
-    └── visualization.py
+# LGTD does not require period specification
+from lgtd import lgtd
+model = lgtd()
+result = model.fit_transform(y)  # ✅ accommodates variable and unknown periods
 ```
 
-**Documentation:**
-- [Installation Guide](docs/installation.md) - Setup instructions
-- [API Reference](docs/api_reference.md) - Complete API documentation
-- [Algorithm Description](docs/algorithm.md) - Mathematical formulation
-- [Parameter Guide](docs/parameters.md) - Hyperparameter tuning
+---
 
-### 2. Experiment Framework
+## Installation
 
-Complete experimental setup to reproduce all tables and figures from the paper.
-
-**Structure:**
-```
-experiments/
-├── baselines/          # Seven baseline method implementations
-├── configs/            # Dataset and experiment configurations
-├── scripts/            # Execution scripts for experiments
-└── results/            # Output directory for tables and figures
-
-data/
-├── generators/         # Synthetic data generation
-├── synthetic/          # Eight synthetic datasets (synth1-synth8)
-└── real_world/         # ETTh1, ETTh2, Sunspot datasets
-
-tests/                  # Unit tests (118 tests)
+```bash
+pip install lgtd
 ```
 
-**Documentation:**
-- [Experiment Guide](docs/experiments.md) - Reproducing paper results
-- [Dataset Descriptions](docs/datasets.md) - Synthetic and real-world datasets
-- [Baseline Methods](docs/baselines.md) - Seven comparison methods
-- [Evaluation Metrics](docs/metrics.md) - MSE, MAE, correlation, PSNR
+---
 
 ## Quick Start
 
-### Installation
-
-```bash
-# Core module only
-pip install -e .
-
-# With experiment framework
-pip install -e ".[experiments]"
-```
-
-See [docs/installation.md](docs/installation.md) for baseline method installation.
-
-### Basic Usage
-
 ```python
-from lgtd import LGTD
+from lgtd import lgtd
 import numpy as np
 
-# Load time series data
-y = np.random.randn(500) + np.sin(np.linspace(0, 20*np.pi, 500))
+# Synthetic time series with trend and seasonality
+t = np.arange(500)
+y = 0.05 * t + 10 * np.sin(2 * np.pi * t / 24) + np.random.normal(0, 1, 500)
 
-# Decompose without specifying period
-model = LGTD()
+# Decomposition
+model = lgtd()
 result = model.fit_transform(y)
 
-# Access components
-trend = result.trend
-seasonal = result.seasonal
-residual = result.residual
-print(f"Detected periods: {result.detected_periods}")
+# Decomposed components
+print("Detected periods:", result.detected_periods)
+print("Trend:", result.trend)
+print("Seasonal:", result.seasonal)
+print("Residual:", result.residual)
 ```
 
-For detailed usage examples, see [docs/api_reference.md](docs/api_reference.md).
+---
 
-## Reproducing Paper Results
+## Key Properties
 
-### Run All Experiments
+* **Season-length-free** — No assumption of known or fixed seasonal periods
+* **Multiple and time-varying periodicities** — Supports overlapping and drifting cycles
+* **Adaptive trend modeling** — Automatically selects between linear and LOWESS trends
+* **Noise robustness** — Stable performance under irregular and noisy observations
+* **Minimal interface** — Simple, scikit-learn–style API
+
+---
+
+## Parameters
+
+```python
+model = lgtd(
+    window_size=3,            # Local window size for pattern extraction
+    error_percentile=50,      # Threshold for seasonal pattern aggregation
+    trend_selection='auto',   # {'auto', 'linear', 'lowess'}
+    lowess_frac=0.1,          # LOWESS smoothing fraction
+    threshold_r2=0.9          # R² threshold for trend selection
+)
+```
+
+Refer to the **[Parameter Guide](docs/parameters.md)** for detailed tuning guidelines.
+
+---
+
+## Visualization
+
+```python
+from lgtd.evaluation.visualization import plot_decomposition
+
+result = model.fit_transform(y)
+plot_decomposition(result, title="LGTD Decomposition")
+```
+
+---
+
+## Evaluation Metrics
+
+```python
+from lgtd.evaluation.metrics import compute_mse, compute_mae
+
+mse = compute_mse(ground_truth, {
+    'trend': result.trend,
+    'seasonal': result.seasonal,
+    'residual': result.residual
+})
+```
+
+---
+
+## Reproducibility
+
+This repository contains a complete experimental pipeline for reproducing the results reported in the accompanying paper. LGTD is evaluated against seven baseline decomposition methods on both synthetic and real-world datasets.
 
 ```bash
-# Synthetic experiments (Tables 1-3, Figures 2-4)
 python experiments/scripts/run_synthetic_experiments.py
-
-# Real-world experiments (Table 4, Figure 5)
 python experiments/scripts/run_realworld_experiments.py
 
-# Generate tables and figures
 python experiments/scripts/generate_tables.py
 python experiments/scripts/generate_figures.py
 ```
 
-### Datasets
+See the **[Experiments Guide](docs/experiments.md)** for full details.
 
-**Synthetic (8 datasets):**
-- synth1-synth8: Controlled experiments with known ground truth
-- Vary trend type, period structure, noise level, series length
-
-**Real-world (3 datasets):**
-- ETTh1/ETTh2: Electricity Transformer Temperature (hourly)
-- Sunspot: Monthly sunspot numbers (SILSO)
-
-See [docs/datasets.md](docs/datasets.md) and [data/real_world/DATASETS.md](data/real_world/DATASETS.md) for complete descriptions.
-
-### Baseline Methods
-
-Comparison against seven state-of-the-art methods:
-
-| Method | Year | Period Required | Type | Reference |
-|--------|------|-----------------|------|-----------|
-| STL (Cleveland et al.) | 1990 | Yes | Batch | [statsmodels](https://www.statsmodels.org/) |
-| RobustSTL (Wen et al.) | 2019 | Yes | Batch | [LeeDoYup](https://github.com/LeeDoYup/RobustSTL) (GitHub) |
-| FastRobustSTL (Wen et al.) | 2020 | Yes | Batch | [ariaghora](https://github.com/ariaghora/fast-robust-stl) (GitHub) |
-| OnlineSTL (Mishra et al.) | 2022 | Yes | Online | [YHYHYHYHYHY](https://github.com/YHYHYHYHYHY/OnlineSTL) (GitHub) |
-| STR (Dokumentov & Hyndman) | 2022 | Yes | Batch | Modified from [robjhyndman](https://github.com/robjhyndman/STR_paper) (GitHub) |
-| OneShotSTL (He et al.) | 2023 | Yes | Batch | [xiao-he](https://github.com/xiao-he/OneShotSTL) (GitHub) |
-| ASTD (Phungtua-eng & Yamamoto) | 2024 | No | Online | [thanapol2](https://github.com/thanapol2/ASTD_ECMLPKDD) (GitHub) |
-
-See [docs/baselines.md](docs/baselines.md) for implementation details and citations.
-
-## Method Overview
-
-LGTD decomposes time series $y_t$ into trend, seasonal, and residual components:
-
-$$y_t = T_t + S_t + R_t$$
-
-**Algorithm:**
-1. **Global Trend Extraction** - Linear regression or LOWESS (automatic selection)
-2. **Detrending** - Compute detrended series $d_t = y_t - T_t$
-3. **Local Trend Analysis** - Sliding-window detection of local linear segments
-4. **Seasonal Extraction** - Aggregate local deviations to form seasonal pattern
-5. **Residual Computation** - Calculate $R_t = y_t - T_t - S_t$
-
-See [docs/algorithm.md](docs/algorithm.md) for mathematical formulation.
+---
 
 ## Documentation
 
-**LGTD Module:**
-- [Installation](docs/installation.md) - Core module and dependencies
-- [API Reference](docs/api_reference.md) - Classes, methods, functions
-- [Algorithm](docs/algorithm.md) - Mathematical description
-- [Parameters](docs/parameters.md) - Hyperparameter guide
+* **[API Reference](docs/api_reference.md)** — Complete API specification
+* **[Algorithm Details](docs/algorithm.md)** — Mathematical formulation
+* **[Parameter Guide](docs/parameters.md)** — Hyperparameter analysis
+* **[Experiments](docs/experiments.md)** — Reproducibility instructions
+* **[Datasets](docs/datasets.md)** — Dataset descriptions
+* **[Baselines](docs/baselines.md)** — Comparative methods
 
-**Experiments:**
-- [Experiments](docs/experiments.md) - Reproducing paper results
-- [Datasets](docs/datasets.md) - Dataset descriptions
-- [Baselines](docs/baselines.md) - Comparison methods
-- [Metrics](docs/metrics.md) - Evaluation metrics
+---
 
-**Entry Point:** [docs/README.md](docs/README.md)
+## Method Overview
 
-## Key Parameters
+LGTD decomposes a time series ( y_t ) as
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `window_size` | 3 | Local trend sliding window size |
-| `error_percentile` | 50 | AutoTrend error threshold percentile |
+[
+y_t = T_t + S_t + R_t,
+]
 
-See [docs/parameters.md](docs/parameters.md) for tuning guidance.
+where ( T_t ) denotes the global trend, ( S_t ) the aggregated seasonal structure, and ( R_t ) the residual component.
+
+**High-level procedure:**
+
+1. Estimate a global trend (linear or LOWESS, selected adaptively)
+2. Remove the estimated trend
+3. Identify local linear patterns using sliding windows
+4. Aggregate consistent patterns into a seasonal component
+5. Compute residuals
+
+See **[Algorithm Documentation](docs/algorithm.md)** for formal definitions and analysis.
+
+---
 
 ## Citation
 
-This repository accompanies a paper currently under review. Full citation will be provided upon publication.
+```bibtex
+@article{lgtd2026arxiv,
+  title        = {LGTD: Local--Global Trend Decomposition for Season-Length-Free Time Series Analysis},
+  author       = {Sophaken, Chotanan and Rattanakornphan, Thanadej and Charoenpoonpanich, Piyanon and Phungtua-eng, Thanapol and Amornbunchornvej, Chainarong},
+  journal      = {arXiv preprint},
+  year         = {2026},
+  eprint       = {2601.04820},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.DB}
+}
+```
 
-**Datasets:**
-- ETT: Zhou et al., Informer (AAAI 2021)
-- Sunspot: SILSO, Royal Observatory of Belgium
+---
 
-See [data/real_world/DATASETS.md](data/real_world/DATASETS.md) for complete citations.
+## License
 
-## Contact
+Released under the MIT License. See **[LICENSE](LICENSE)** for details.
 
-For questions or issues, please open a GitHub issue.
+---
+
+## Links
+
+* **GitHub**: [https://github.com/chotanansub/LGTD](https://github.com/chotanansub/LGTD)
+* **PyPI**: [https://pypi.org/project/lgtd/](https://pypi.org/project/lgtd/)
+* **Issues**: [https://github.com/chotanansub/LGTD/issues](https://github.com/chotanansub/LGTD/issues)
+* **Documentation**: docs/
