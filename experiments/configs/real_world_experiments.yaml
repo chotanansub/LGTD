@@ -62,13 +62,13 @@ methods:
       period: 24
       reg1: 1.0
       reg2: 10.0
-      K: 2
-      H: 5
-      dn1: 1.0
-      dn2: 1.0
-      ds1: 50.0
-      ds2: 1.0
-      max_iter: 1000
+      K: 1
+      H: 2
+      dn1: 5.0
+      dn2: 5.0
+      ds1: 100.0
+      ds2: 5.0
+      max_iter: 20
   str:
     enabled: true
     params:

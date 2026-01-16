@@ -223,14 +223,17 @@ class RealWorldExperimentRunner(BaseExperiment):
         """
         Save decomposition components for plotting.
 
+        Saves each model's decomposition as JSON in the format:
+        experiments/results/decompositions/real_world/{dataset_name}/{model_name}.json
+
         Args:
             dataset_name: Name of the dataset
             experiment_result: Results dictionary containing 'dataset' and 'results'
         """
         import json
 
-        # Create dataset subdirectory
-        dataset_dir = self.output_dir / "decompositions" / dataset_name
+        # Create dataset subdirectory with real_world prefix
+        dataset_dir = self.output_dir / "decompositions" / "real_world" / dataset_name
         dataset_dir.mkdir(parents=True, exist_ok=True)
 
         y_data = experiment_result['dataset']['y']
