@@ -67,7 +67,7 @@ class lgtd:
 
     def __init__(
         self,
-        window_size: int = 3,
+        window_size: int = 5,
         error_percentile: int = 50,
         trend_selection: Literal['auto', 'linear', 'lowess'] = 'auto',
         lowess_frac: float = 0.1,
