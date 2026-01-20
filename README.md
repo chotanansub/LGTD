@@ -11,6 +11,7 @@
 LGTD (Local–Global Trend Decomposition) is a principled method for decomposing a univariate time series into **trend**, **seasonal**, and **residual** components *without requiring prior specification of seasonal periods*. In contrast to classical decomposition techniques—such as STL, X-11, and MSTL—which assume fixed or user-specified seasonal lengths, LGTD automatically identifies and aggregates repeating structures of arbitrary and potentially time-varying scales.
 
 ![](assets/pipeline.png)
+> *Figure 1. LGTD global–local decomposition pipeline.*
 
 ---
 
