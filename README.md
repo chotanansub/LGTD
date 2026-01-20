@@ -5,7 +5,9 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://img.shields.io/pypi/v/lgtd.svg)](https://pypi.org/project/lgtd/)
-[![arXiv](https://img.shields.io/badge/arXiv-2601.04820-b31b1b.svg)](https://arxiv.org/abs/2601.04820)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-LGTD-black?logo=github)](https://github.com/chotanansub/LGTD)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1hOH2Be9w15yEvIA6YZXYSEbWZVI3ZoEN?usp=sharing)
+
 
 **Season-length-free time series decomposition.**
 LGTD (Local–Global Trend Decomposition) is a principled method for decomposing a univariate time series into **trend**, **seasonal**, and **residual** components *without requiring prior specification of seasonal periods*. In contrast to classical decomposition techniques—such as STL, X-11, and MSTL—which assume fixed or user-specified seasonal lengths, LGTD automatically identifies and aggregates repeating structures of arbitrary and potentially time-varying scales.
