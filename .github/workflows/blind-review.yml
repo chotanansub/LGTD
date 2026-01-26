@@ -35,20 +35,32 @@ jobs:
 
     - name: Anonymize README.md
       run: |
-        # Remove arXiv badge line
-        sed -i '/\[!\[arXiv\]/d' README.md
+        # Remove all badge lines (Python, PyPI, GitHub, Colab, arXiv, License)
+        sed -i '/\[!\[Python/d' README.md
+        sed -i '/\[!\[PyPI/d' README.md
+        sed -i '/\[!\[GitHub/d' README.md
+        sed -i '/\[!\[Open In Colab/d' README.md
+        sed -i '/\[!\[arXiv/d' README.md
+        sed -i '/\[!\[License/d' README.md
 
-        # Anonymize citation block - replace author names
-        sed -i 's/author       = {Sophaken, Chotanan and Rattanakornphan, Thanadej and Charoenpoonpanich, Piyanon and Phungtua-eng, Thanapol and Amornbunchornvej, Chainarong}/author       = {Anonymous}/' README.md
+        # Remove Citation section (from ## Citation to the end of the bibtex block)
+        sed -i '/^## Citation$/,/^```$/d' README.md
 
-        # Remove GitHub links section at the bottom
-        sed -i '/^\* \*\*GitHub\*\*:/d' README.md
-        sed -i '/^\* \*\*PyPI\*\*:/d' README.md
-        sed -i '/^\* \*\*Issues\*\*:/d' README.md
+        # Remove License section
+        sed -i '/^## License$/,/^---$/d' README.md
+
+        # Remove Links section (from ## Links to end of file or next section)
+        sed -i '/^## Links$/,$d' README.md
+
+        # Replace pip install lgtd with local install
+        sed -i 's/^pip install lgtd$/cd LGTD\npip install ./' README.md
 
         # Replace any remaining GitHub URLs with placeholder
         sed -i 's|https://github.com/chotanansub/LGTD|https://github.com/anonymous/anonymous-repo|g' README.md
         sed -i 's|https://github.com/chotanansub/lgtd|https://github.com/anonymous/anonymous-repo|g' README.md
+
+        # Replace Colab links
+        sed -i 's|https://colab.research.google.com/drive/[^)]*|https://anonymous|g' README.md
 
     - name: Anonymize pyproject.toml
       run: |
