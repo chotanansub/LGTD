@@ -1,0 +1,84 @@
+name: Create Blind Review Branch
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  create-blind-branch:
+    name: Anonymize for Blind Review
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout main branch
+      uses: actions/checkout@v4
+      with:
+        ref: main
+        fetch-depth: 0
+
+    - name: Configure git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Create or update blind branch
+      run: |
+        # Delete remote blind branch if exists
+        git push origin --delete blind 2>/dev/null || true
+        # Create new blind branch from main
+        git checkout -b blind
+
+    - name: Anonymize README.md
+      run: |
+        # Remove arXiv badge line
+        sed -i '/\[!\[arXiv\]/d' README.md
+
+        # Anonymize citation block - replace author names
+        sed -i 's/author       = {Sophaken, Chotanan and Rattanakornphan, Thanadej and Charoenpoonpanich, Piyanon and Phungtua-eng, Thanapol and Amornbunchornvej, Chainarong}/author       = {Anonymous}/' README.md
+
+        # Remove GitHub links section at the bottom
+        sed -i '/^\* \*\*GitHub\*\*:/d' README.md
+        sed -i '/^\* \*\*PyPI\*\*:/d' README.md
+        sed -i '/^\* \*\*Issues\*\*:/d' README.md
+
+        # Replace any remaining GitHub URLs with placeholder
+        sed -i 's|https://github.com/chotanansub/LGTD|https://github.com/anonymous/anonymous-repo|g' README.md
+        sed -i 's|https://github.com/chotanansub/lgtd|https://github.com/anonymous/anonymous-repo|g' README.md
+
+    - name: Anonymize pyproject.toml
+      run: |
+        # Replace author information
+        sed -i 's/{name = "Chotanansub Sophaken", email = "chotanansub.s@gmail.com"}/{name = "Anonymous", email = "anonymous@example.com"}/' pyproject.toml
+
+        # Replace GitHub URLs
+        sed -i 's|https://github.com/chotanansub/lgtd|https://github.com/anonymous/anonymous-repo|g' pyproject.toml
+
+    - name: Remove any other identifying information
+      run: |
+        # Search and replace any remaining instances of the username
+        find . -type f \( -name "*.md" -o -name "*.txt" -o -name "*.rst" \) \
+          -not -path "./.git/*" \
+          -exec sed -i 's/chotanansub/anonymous/gi' {} \; 2>/dev/null || true
+
+        # Remove arXiv references
+        find . -type f \( -name "*.md" -o -name "*.txt" -o -name "*.rst" \) \
+          -not -path "./.git/*" \
+          -exec sed -i 's/arXiv:2601.04820/arXiv:XXXX.XXXXX/g' {} \; 2>/dev/null || true
+
+        find . -type f \( -name "*.md" -o -name "*.txt" -o -name "*.rst" \) \
+          -not -path "./.git/*" \
+          -exec sed -i 's/2601.04820/XXXX.XXXXX/g' {} \; 2>/dev/null || true
+
+    - name: Commit anonymized changes
+      run: |
+        git add -A
+        git commit -m "Anonymize repository for blind peer review" || echo "No changes to commit"
+
+    - name: Push blind branch
+      run: |
+        git push origin blind --force
