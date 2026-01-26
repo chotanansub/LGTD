@@ -62,9 +62,10 @@ jobs:
         # Replace Colab links
         sed -i 's|https://colab.research.google.com/drive/[^)]*|https://anonymous|g' README.md
 
-    - name: Remove pyproject.toml
+    - name: Remove pyproject.toml and .github
       run: |
         rm -f pyproject.toml
+        rm -rf .github
 
     - name: Remove any other identifying information
       run: |
