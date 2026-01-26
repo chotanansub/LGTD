@@ -79,9 +79,6 @@ print("Residual:", result.residual)
 model = lgtd(
     window_size=3,            # Local window size for pattern extraction
     error_percentile=50,      # Threshold for seasonal pattern aggregation
-    trend_selection='auto',   # {'auto', 'linear', 'lowess'}
-    lowess_frac=0.1,          # LOWESS smoothing fraction
-    threshold_r2=0.9          # R² threshold for trend selection
 )
 ```
 
