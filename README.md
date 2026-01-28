@@ -179,12 +179,3 @@ See **[Algorithm Documentation](docs/algorithm.md)** for formal definitions and 
 ## License
 
 Released under the MIT License. See **[LICENSE](LICENSE)** for details.
-
----
-
-## Links
-
-* **GitHub**: [https://github.com/chotanansub/LGTD](https://github.com/chotanansub/LGTD)
-* **PyPI**: [https://pypi.org/project/lgtd/](https://pypi.org/project/lgtd/)
-* **Issues**: [https://github.com/chotanansub/LGTD/issues](https://github.com/chotanansub/LGTD/issues)
-* **Documentation**: docs/
