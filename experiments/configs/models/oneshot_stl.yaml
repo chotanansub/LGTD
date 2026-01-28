@@ -1,0 +1,51 @@
+model_name: oneshot_stl
+enabled: true
+dataset_params:
+  synth1:
+    period: 120
+    shift_window: 0
+    init_ratio: 0.3
+  synth2:
+    period: 60
+    shift_window: 0
+    init_ratio: 0.3
+  synth3:
+    period: 120
+    shift_window: 0
+    init_ratio: 0.3
+  synth4:
+    period: 120
+    shift_window: 0
+    init_ratio: 0.3
+  synth5:
+    period: 120
+    shift_window: 0
+    init_ratio: 0.3
+  synth6:
+    period: 120
+    shift_window: 0
+    init_ratio: 0.3
+  synth7:
+    period: 120
+    shift_window: 0
+    init_ratio: 0.3
+  synth8:
+    period: 120
+    shift_window: 0
+    init_ratio: 0.3
+  synth9:
+    period: 120
+    shift_window: 0
+    init_ratio: 0.3
+  ETTh1:
+    period: 24
+    shift_window: 0
+    init_ratio: 0.3
+  ETTh2:
+    period: 24
+    shift_window: 0
+    init_ratio: 0.3
+  Sunspot:
+    period: 12
+    shift_window: 0
+    init_ratio: 0.3

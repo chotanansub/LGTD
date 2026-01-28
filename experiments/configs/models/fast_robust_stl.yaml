@@ -1,0 +1,135 @@
+model_name: fast_robust_stl
+enabled: true
+dataset_params:
+  synth1:
+    period: 120
+    reg1: 1.0
+    reg2: 10.0
+    K: 2
+    H: 5
+    dn1: 1.0
+    dn2: 1.0
+    ds1: 50.0
+    ds2: 1.0
+    max_iter: 1000
+  synth2:
+    period: 120
+    reg1: 1.0
+    reg2: 10.0
+    K: 2
+    H: 5
+    dn1: 1.0
+    dn2: 1.0
+    ds1: 50.0
+    ds2: 1.0
+    max_iter: 1000
+  synth3:
+    period: 120
+    reg1: 1.0
+    reg2: 10.0
+    K: 2
+    H: 5
+    dn1: 1.0
+    dn2: 1.0
+    ds1: 50.0
+    ds2: 1.0
+    max_iter: 1000
+  synth4:
+    period: 120
+    reg1: 1.0
+    reg2: 10.0
+    K: 2
+    H: 5
+    dn1: 1.0
+    dn2: 1.0
+    ds1: 50.0
+    ds2: 1.0
+    max_iter: 1000
+  synth5:
+    period: 60
+    reg1: 5.0
+    reg2: 20.0
+    K: 1
+    H: 3
+    dn1: 1.5
+    dn2: 1.5
+    ds1: 75.0
+    ds2: 1.5
+    max_iter: 800
+  synth6:
+    period: 120
+    reg1: 1.0
+    reg2: 10.0
+    K: 2
+    H: 5
+    dn1: 1.0
+    dn2: 1.0
+    ds1: 50.0
+    ds2: 1.0
+    max_iter: 1000
+  synth7:
+    period: 120
+    reg1: 1.0
+    reg2: 10.0
+    K: 2
+    H: 5
+    dn1: 1.0
+    dn2: 1.0
+    ds1: 50.0
+    ds2: 1.0
+    max_iter: 1000
+  synth8:
+    period: 120
+    reg1: 1.0
+    reg2: 10.0
+    K: 2
+    H: 5
+    dn1: 1.0
+    dn2: 1.0
+    ds1: 50.0
+    ds2: 1.0
+    max_iter: 1000
+  synth9:
+    period: 120
+    reg1: 1.0
+    reg2: 10.0
+    K: 2
+    H: 5
+    dn1: 1.0
+    dn2: 1.0
+    ds1: 50.0
+    ds2: 1.0
+    max_iter: 1000
+  ETTh1:
+    period: 24
+    reg1: 1.0
+    reg2: 10.0
+    K: 2
+    H: 5
+    dn1: 1.0
+    dn2: 1.0
+    ds1: 50.0
+    ds2: 1.0
+    max_iter: 1000
+  ETTh2:
+    period: 24
+    reg1: 1.0
+    reg2: 10.0
+    K: 2
+    H: 5
+    dn1: 1.0
+    dn2: 1.0
+    ds1: 50.0
+    ds2: 1.0
+    max_iter: 1000
+  Sunspot:
+    period: 12
+    reg1: 1.0
+    reg2: 10.0
+    K: 1
+    H: 2
+    dn1: 5.0
+    dn2: 5.0
+    ds1: 100.0
+    ds2: 5.0
+    max_iter: 20

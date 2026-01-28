@@ -1,0 +1,66 @@
+model_name: lgtd_lowess
+enabled: true
+dataset_params:
+  ETTh1:
+    window_size: 3
+    error_percentile: 50
+    trend_selection: lowess
+    lowess_frac: 0.1
+    verbose: false
+  ETTh2:
+    window_size: 3
+    error_percentile: 50
+    trend_selection: lowess
+    lowess_frac: 0.1
+    verbose: false
+  Sunspot:
+    window_size: 3
+    error_percentile: 50
+    trend_selection: lowess
+    lowess_frac: 0.1
+    verbose: false
+  synth1:
+    window_size: 3
+    error_percentile: 30
+    lowess_frac: 0.1
+    verbose: false
+  synth2:
+    window_size: 3
+    error_percentile: 40
+    lowess_frac: 0.1
+    verbose: false
+  synth3:
+    window_size: 3
+    error_percentile: 30
+    lowess_frac: 0.1
+    verbose: false
+  synth4:
+    window_size: 3
+    error_percentile: 30
+    lowess_frac: 0.1
+    verbose: false
+  synth5:
+    window_size: 3
+    error_percentile: 30
+    lowess_frac: 0.1
+    verbose: false
+  synth6:
+    window_size: 3
+    error_percentile: 30
+    lowess_frac: 0.1
+    verbose: false
+  synth7:
+    window_size: 3
+    error_percentile: 30
+    lowess_frac: 0.1
+    verbose: false
+  synth8:
+    window_size: 3
+    error_percentile: 30
+    lowess_frac: 0.1
+    verbose: false
+  synth9:
+    window_size: 3
+    error_percentile: 30
+    lowess_frac: 0.1
+    verbose: false

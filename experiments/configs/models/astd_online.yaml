@@ -1,0 +1,51 @@
+model_name: astd_online
+enabled: true
+dataset_params:
+  ETTh1:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  ETTh2:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  Sunspot:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  synth1:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  synth2:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  synth3:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  synth4:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  synth5:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  synth6:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  synth7:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  synth8:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300
+  synth9:
+    seasonality_smoothing: 0.7
+    mode: online
+    init_window_size: 300

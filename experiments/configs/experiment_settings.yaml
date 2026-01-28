@@ -1,0 +1,12 @@
+experiment:
+  name: lgtd_synthetic_evaluation
+  description: Synthetic data experiments for LGTD method validation
+  output_dir: experiments/results/synthetic
+evaluation:
+  metrics:
+  - mse
+  - mae
+  - rmse
+  - correlation
+  - psnr
+  save_plots: true

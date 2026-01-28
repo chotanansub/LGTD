@@ -1,0 +1,63 @@
+model_name: online_stl
+enabled: true
+dataset_params:
+  synth1:
+    periods:
+    - 120
+    lam: 0.3
+    init_window_ratio: 0.3
+  synth2:
+    periods:
+    - 60
+    lam: 0.1
+    init_window_ratio: 0.3
+  synth3:
+    periods:
+    - 120
+    lam: 0.3
+    init_window_ratio: 0.3
+  synth4:
+    periods:
+    - 120
+    lam: 0.3
+    init_window_ratio: 0.3
+  synth5:
+    periods:
+    - 120
+    lam: 0.3
+    init_window_ratio: 0.3
+  synth6:
+    periods:
+    - 120
+    lam: 0.3
+    init_window_ratio: 0.3
+  synth7:
+    periods:
+    - 120
+    lam: 0.3
+    init_window_ratio: 0.3
+  synth8:
+    periods:
+    - 120
+    lam: 0.3
+    init_window_ratio: 0.3
+  synth9:
+    periods:
+    - 120
+    lam: 0.3
+    init_window_ratio: 0.3
+  ETTh1:
+    periods:
+    - 24
+    lam: 0.3
+    init_window_ratio: 0.3
+  ETTh2:
+    periods:
+    - 24
+    lam: 0.3
+    init_window_ratio: 0.3
+  Sunspot:
+    periods:
+    - 12
+    lam: 0.3
+    init_window_ratio: 0.3

@@ -1,0 +1,99 @@
+model_name: str
+enabled: true
+dataset_params:
+  ETTh1:
+    seasonal_periods:
+    - 24
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  ETTh2:
+    seasonal_periods:
+    - 24
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  Sunspot:
+    seasonal_periods:
+    - 12
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  synth1:
+    seasonal_periods:
+    - 120
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  synth2:
+    seasonal_periods:
+    - 120
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  synth3:
+    seasonal_periods:
+    - 120
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  synth4:
+    seasonal_periods:
+    - 120
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  synth5:
+    seasonal_periods:
+    - 120
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  synth6:
+    seasonal_periods:
+    - 120
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  synth7:
+    seasonal_periods:
+    - 120
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  synth8:
+    seasonal_periods:
+    - 120
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10
+  synth9:
+    seasonal_periods:
+    - 120
+    trend_lambda: 1000.0
+    seasonal_lambda: 100.0
+    robust: false
+    auto_params: false
+    n_trials: 10

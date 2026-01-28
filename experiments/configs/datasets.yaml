@@ -1,0 +1,177 @@
+datasets:
+- name: ETTh1
+  type: real_world
+  loader: load_ett_dataset
+  loader_params:
+    column: OT
+    subset: all
+- name: ETTh2
+  type: real_world
+  loader: load_ett_dataset
+  loader_params:
+    column: OT
+    subset: all
+- name: Sunspot
+  type: real_world
+  loader: load_sunspot_dataset
+  loader_params:
+    subset: all
+- name: synth1
+  path: data/synthetic/datasets/synth1_data.json
+  trend_type: linear
+  seasonality_type: fixed
+  seasonal_params:
+    amplitude: 50.0
+    period: 120
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth2
+  path: data/synthetic/datasets/synth2_data.json
+  trend_type: inverted_v
+  seasonality_type: fixed
+  seasonal_params:
+    amplitude: 50.0
+    period: 60
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth3
+  path: data/synthetic/datasets/synth3_data.json
+  trend_type: piecewise
+  seasonality_type: fixed
+  seasonal_params:
+    amplitude: 80.0
+    period: 120
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth4
+  path: data/synthetic/datasets/synth4_data.json
+  trend_type: linear
+  seasonality_type: transitive
+  seasonal_params:
+    amplitude: 50.0
+    main_period: 120
+    transition_period: 60
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth5
+  path: data/synthetic/datasets/synth5_data.json
+  trend_type: inverted_v
+  seasonality_type: transitive
+  seasonal_params:
+    amplitude: 50.0
+    main_period: 60
+    transition_period: 120
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth6
+  path: data/synthetic/datasets/synth6_data.json
+  trend_type: piecewise
+  seasonality_type: transitive
+  seasonal_params:
+    amplitude: 80.0
+    main_period: 120
+    transition_period: 60
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth7
+  path: data/synthetic/datasets/synth7_data.json
+  trend_type: linear
+  seasonality_type: variable
+  seasonal_params:
+    amplitude: 50.0
+    periods:
+    - 72
+    - 87
+    - 89
+    - 103
+    - 104
+    - 105
+    - 140
+    - 146
+    - 149
+    - 153
+    - 159
+    - 174
+    - 189
+    - 238
+    - 256
+    - 257
+    - 298
+    - 352
+    - 388
+    - 399
+    - 425
+    - 430
+    - 440
+    - 471
+    - 490
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth8
+  path: data/synthetic/datasets/synth8_data.json
+  trend_type: inverted_v
+  seasonality_type: variable
+  seasonal_params:
+    amplitude: 50.0
+    periods:
+    - 72
+    - 87
+    - 89
+    - 103
+    - 104
+    - 105
+    - 140
+    - 146
+    - 149
+    - 153
+    - 159
+    - 174
+    - 189
+    - 238
+    - 256
+    - 257
+    - 298
+    - 352
+    - 388
+    - 399
+    - 425
+    - 430
+    - 440
+    - 471
+    - 490
+  n_samples: 2000
+  noise_std: 1.0
+- name: synth9
+  path: data/synthetic/datasets/synth9_data.json
+  trend_type: piecewise
+  seasonality_type: variable
+  seasonal_params:
+    amplitude: 80.0
+    periods:
+    - 72
+    - 87
+    - 89
+    - 103
+    - 104
+    - 105
+    - 140
+    - 146
+    - 149
+    - 153
+    - 159
+    - 174
+    - 189
+    - 238
+    - 256
+    - 257
+    - 298
+    - 352
+    - 388
+    - 399
+    - 425
+    - 430
+    - 440
+    - 471
+    - 490
+  n_samples: 2000
+  noise_std: 1.0

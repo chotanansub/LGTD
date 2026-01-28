@@ -1,0 +1,39 @@
+model_name: astd
+enabled: true
+dataset_params:
+  ETTh1:
+    seasonality_smoothing: 0.7
+    mode: batch
+  ETTh2:
+    seasonality_smoothing: 0.7
+    mode: batch
+  Sunspot:
+    seasonality_smoothing: 0.7
+    mode: batch
+  synth1:
+    seasonality_smoothing: 0.7
+    mode: batch
+  synth2:
+    seasonality_smoothing: 0.7
+    mode: batch
+  synth3:
+    seasonality_smoothing: 0.7
+    mode: batch
+  synth4:
+    seasonality_smoothing: 0.7
+    mode: batch
+  synth5:
+    seasonality_smoothing: 0.7
+    mode: batch
+  synth6:
+    seasonality_smoothing: 0.7
+    mode: batch
+  synth7:
+    seasonality_smoothing: 0.7
+    mode: batch
+  synth8:
+    seasonality_smoothing: 0.7
+    mode: batch
+  synth9:
+    seasonality_smoothing: 0.7
+    mode: batch
