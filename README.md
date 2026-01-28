@@ -1,11 +1,5 @@
 # LGTD: Local–Global Trend Decomposition for Season-Length–Free Time Series Analysis
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI version](https://img.shields.io/pypi/v/lgtd.svg)](https://pypi.org/project/lgtd/)
-[![GitHub Repo](https://img.shields.io/badge/GitHub-LGTD-black?logo=github)](https://github.com/chotanansub/LGTD)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1hOH2Be9w15yEvIA6YZXYSEbWZVI3ZoEN?usp=sharing)
-[![arXiv](https://img.shields.io/badge/arXiv-2601.04820-b31b1b.svg)](https://arxiv.org/abs/2601.04820)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **LGTD (Local–Global Trend Decomposition)** is a principled method for decomposing a univariate time series into **trend**, **seasonal**, and **residual** components *without requiring prior specification of seasonal periods*. In contrast to classical decomposition techniques—such as STL, X-11, and MSTL—which assume fixed or user-specified seasonal lengths, LGTD automatically identifies and aggregates repeating structures of arbitrary and potentially time-varying scales.
 
@@ -35,7 +29,8 @@ result = model.fit_transform(y)  # ✅ accommodates variable and unknown periods
 ## Installation
 
 ```bash
-pip install lgtd
+cd LGTD
+pip install .
 ```
 
 ---
@@ -160,22 +155,6 @@ See **[Algorithm Documentation](docs/algorithm.md)** for formal definitions and 
 
 ---
 
-## Citation
-
-```bibtex
-@article{lgtd2026arxiv,
-  title        = {LGTD: Local--Global Trend Decomposition for Season-Length-Free Time Series Analysis},
-  author       = {Sophaken, Chotanan and Rattanakornphan, Thanadej and Charoenpoonpanich, Piyanon and Phungtua-eng, Thanapol and Amornbunchornvej, Chainarong},
-  journal      = {arXiv preprint},
-  year         = {2026},
-  eprint       = {2601.04820},
-  archivePrefix= {arXiv},
-  primaryClass = {cs.DB}
-}
-```
 
 ---
 
-## License
-
-Released under the MIT License. See **[LICENSE](LICENSE)** for details.
