@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Convert experiment results CSV to wide-format LaTeX table.
+Convert experiment results to transposed MAE-only LaTeX table.
 
-This generates a landscape table organized by:
-- Rows: Trend types (Linear, Inverted-V, Piecewise) with models as sub-rows
-- Columns: Period types (Fixed, Transitive, Variable) with components (Trend, Seasonal, Residual)
+This generates a table organized by:
+- Rows: Trend types (Linear, Inverted-V, Piecewise) × Period types (Fixed, Transitive, Variable)
+- Columns: Models (STL, STR, FastRobustSTL, ASTD, ASTD_Online, OnlineSTL, OneShotSTL, LGTD)
+- Metrics: MAE only for components (Trend, Seasonal, Residual)
 
 Usage:
-    python scripts/results_to_latex_wide.py
-    python scripts/results_to_latex_wide.py results/synthetic/experiment_results.csv
+    python scripts/tables/generate_decomposition_tables_mae_transposed.py
 """
 
 import pandas as pd
@@ -66,7 +66,7 @@ DATASET_PROPERTIES = load_dataset_properties_from_json()
 # -----------------------------
 
 # Model display names and order
-MODEL_ORDER = ['STL', 'STR', 'FastRobustSTL', 'ASTD', 'ASTD_Online', 'OnlineSTL', 'OneShotSTL', 'LGTD']
+MODEL_ORDER = ['LGTD', 'STL', 'STR', 'FastRobustSTL', 'ASTD', 'ASTD_Online', 'OnlineSTL', 'OneShotSTL']
 
 # Model display names for LaTeX
 MODEL_DISPLAY_NAMES = {
@@ -111,19 +111,6 @@ MODEL_NAME_MAPPING = {
     'OneShotSTL': 'OneShotSTL',
 }
 
-# Model types for display
-MODEL_TYPES_DISPLAY = {
-    'LGTD': 'batch',
-    'STL': 'batch',
-    'RobustSTL': 'batch',
-    'ASTD': 'batch',
-    'ASTD_Online': 'online',
-    'OnlineSTL': 'online',
-    'OneShotSTL': 'online',
-    'FastRobustSTL': 'batch',
-    'STR': 'batch'
-}
-
 # Models to exclude from the table
 EXCLUDED_MODELS = ['LGTD_Linear', 'LGTD_LOWESS']
 
@@ -135,9 +122,6 @@ PERIOD_TYPES = ['Fixed', 'Transitive', 'Variable']
 
 # Components to report
 COMPONENTS = ['trend', 'seasonal', 'residual']
-
-# Metrics to show
-METRICS = ['MSE', 'MAE']
 
 
 # -----------------------------
@@ -151,22 +135,10 @@ def format_number(x, precision=2):
     return f"{x:.{precision}f}"
 
 
-def compute_best_values_per_period(df):
-    """Compute best (minimum) values for each (trend_type, period_type, component, metric)."""
-    best = {}
-    for (trend, period, comp), group in df.groupby(['trend_type', 'period_type', 'component']):
-        for metric in METRICS:
-            col_name = f'{metric.lower()}_{comp}'
-            if col_name in group.columns:
-                best[(trend, period, comp, metric)] = group[col_name].min()
-    return best
-
-
-def reshape_to_wide_format(df):
-    """Reshape data to wide format with one row per model per trend type."""
+def reshape_to_transposed_format(df, include_mse=True):
+    """Reshape data to transposed format with models as columns."""
     # Filter out excluded models
     df = df[~df['model'].isin(EXCLUDED_MODELS)].copy()
-
 
     # Normalize trend and period types to match display format (handle both lowercase and already-capitalized)
     trend_map = {
@@ -182,60 +154,52 @@ def reshape_to_wide_format(df):
     df['trend_type'] = df['trend_type'].map(trend_map)
     df['period_type'] = df['period_type'].map(period_map)
 
-    # Create rows: one per (trend_type, model)
+    # Create rows: one per (trend_type, period_type, component, metric)
     rows = []
 
+    metrics_to_include = ['MSE', 'MAE'] if include_mse else ['MAE']
+
     for trend_type in TREND_TYPES:
-        trend_df = df[df['trend_type'] == trend_type]
+        for period_type in PERIOD_TYPES:
+            for component in COMPONENTS:
+                for metric in metrics_to_include:
+                    row = {
+                        'trend_type': trend_type,
+                        'period_type': period_type,
+                        'component': component,
+                        'metric': metric
+                    }
 
-        if trend_df.empty:
-            continue
+                    # Add data for each model
+                    for model in MODEL_ORDER:
+                        # Find the data for this combination
+                        model_data = df[
+                            (df['trend_type'] == trend_type) &
+                            (df['period_type'] == period_type) &
+                            (df['model'] == model)
+                        ]
 
-        # Get models for this trend type
-        models = [m for m in MODEL_ORDER if m in trend_df['model'].unique()]
+                        if not model_data.empty:
+                            metric_col = f'{metric.lower()}_{component}'
+                            row[model] = model_data.iloc[0].get(metric_col, float('nan'))
+                        else:
+                            row[model] = float('nan')
 
-        for model in models:
-            model_df = trend_df[trend_df['model'] == model]
-
-            row = {
-                'trend_type': trend_type,
-                'model': model
-            }
-
-            # Add data for each period type
-            for period_type in PERIOD_TYPES:
-                period_df = model_df[model_df['period_type'] == period_type]
-
-                if not period_df.empty:
-                    # Get the first (and should be only) row for this combination
-                    data = period_df.iloc[0]
-
-                    for component in COMPONENTS:
-                        for metric in METRICS:
-                            col_name = f'{metric.lower()}_{component}'
-                            key = f'{period_type}_{component}_{metric}'
-                            row[key] = data.get(col_name, float('nan'))
-                else:
-                    # No data for this period type
-                    for component in COMPONENTS:
-                        for metric in METRICS:
-                            key = f'{period_type}_{component}_{metric}'
-                            row[key] = float('nan')
-
-            rows.append(row)
+                    rows.append(row)
 
     return pd.DataFrame(rows)
 
 
-def generate_latex_table_wide(
+def generate_latex_table_transposed(
     df,
-    output_file='table_decomposition_results_wide.tex',
-    caption='Decomposition Error Comparison Across Synthetic Datasets',
+    output_file='table_decomposition_mae_transposed.tex',
+    caption='Decomposition errors (MSE/MAE) across synthetic datasets',
     bold_best=True,
-    precision=2
+    precision=2,
+    include_mse=True
 ):
     """
-    Generate wide-format LaTeX table.
+    Generate transposed LaTeX table with models as columns.
 
     Args:
         df: DataFrame with experiment results
@@ -243,77 +207,120 @@ def generate_latex_table_wide(
         caption: Table caption
         bold_best: Whether to bold the best values
         precision: Number of decimal places
+        include_mse: Whether to include MSE in addition to MAE
     """
 
-    # Reshape to wide format
-    df_wide = reshape_to_wide_format(df)
+    # Reshape to transposed format
+    df_transposed = reshape_to_transposed_format(df, include_mse=include_mse)
 
-    if df_wide.empty:
+    if df_transposed.empty:
         print("No data to generate table")
         return
 
-    # Compute best values for bolding
+    # Compute best and second-best values for bolding/underlining (minimum for each row)
     best_values = {}
+    second_best_values = {}
     if bold_best:
-        for trend_type in TREND_TYPES:
-            for period_type in PERIOD_TYPES:
-                for component in COMPONENTS:
-                    for metric in METRICS:
-                        # Find minimum value across all models for this combination
-                        col_key = f'{period_type}_{component}_{metric}'
-                        trend_data = df_wide[df_wide['trend_type'] == trend_type]
-                        if col_key in trend_data.columns:
-                            min_val = trend_data[col_key].min()
-                            if not pd.isna(min_val):
-                                best_values[(trend_type, period_type, component, metric)] = min_val
+        for idx, row in df_transposed.iterrows():
+            trend = row['trend_type']
+            period = row['period_type']
+            comp = row['component']
+            metric = row['metric']
+
+            # Get all model values for this row
+            model_values = [row[model] for model in MODEL_ORDER if model in row]
+            model_values = [v for v in model_values if not pd.isna(v)]
+
+            if model_values:
+                # Sort to get best and second best
+                sorted_values = sorted(model_values)
+                best_values[(trend, period, comp, metric)] = sorted_values[0]
+                # Only set second best if there are at least 2 unique values
+                if len(sorted_values) >= 2 and sorted_values[0] != sorted_values[1]:
+                    second_best_values[(trend, period, comp, metric)] = sorted_values[1]
 
     # Generate LaTeX body
     latex_lines = []
 
     for trend_idx, trend_type in enumerate(TREND_TYPES):
-        trend_df = df_wide[df_wide['trend_type'] == trend_type]
+        trend_df = df_transposed[df_transposed['trend_type'] == trend_type]
 
         if trend_df.empty:
             continue
 
-        models = trend_df['model'].tolist()
-        n_models = len(models)
+        # Count rows for this trend type
+        n_rows = len(trend_df)
+        rows_per_period = len(COMPONENTS) * (2 if include_mse else 1)
 
-        for model_idx, (_, row) in enumerate(trend_df.iterrows()):
-            model = row['model']
-            model_display = MODEL_DISPLAY_NAMES.get(model, model)
+        for row_idx, (_, row) in enumerate(trend_df.iterrows()):
+            period_type = row['period_type']
+            component = row['component']
+            metric = row['metric']
 
             # Build line
-            if model_idx == 0:
-                # First model row: include rotated trend label
-                line_parts = [f"\\multirow{{{n_models}}}{{*}}{{\\rotatebox{{90}}{{\\textbf{{{trend_type}}}}}}}"]
+            if row_idx == 0:
+                # First row for this trend: include rotated trend label
+                line_parts = [f"\\multirow{{{n_rows}}}{{*}}{{\\rotatebox{{90}}{{\\textbf{{{trend_type}}}}}}}"]
             else:
                 line_parts = ['']
 
-            # Add model name
-            line_parts.append(model_display)
+            # Add period type (only show once per period group)
+            # Calculate if this is the first row of a period
+            period_start = row_idx % rows_per_period == 0
+            if period_start:
+                line_parts.append(f"\\multirow{{{rows_per_period}}}{{*}}{{\\textbf{{{period_type}}}}}")
+            else:
+                line_parts.append('')
 
-            # Add data for each period type
-            for period_type in PERIOD_TYPES:
-                for component in COMPONENTS:
-                    for metric in METRICS:
-                        col_key = f'{period_type}_{component}_{metric}'
-                        value = row[col_key]
+            # Add component name (show once per component group)
+            comp_start = row_idx % (2 if include_mse else 1) == 0
+            if comp_start and include_mse:
+                component_display = component.capitalize()
+                line_parts.append(f"\\multirow{{2}}{{*}}{{{component_display}}}")
+            elif not include_mse:
+                component_display = component.capitalize()
+                line_parts.append(component_display)
+            else:
+                line_parts.append('')
 
-                        # Format value
-                        val_str = format_number(value, precision=precision)
+            # Add metric name
+            line_parts.append(metric)
 
-                        # Bold if best
-                        if bold_best and not pd.isna(value):
-                            best_key = (trend_type, period_type, component, metric)
-                            if best_key in best_values and value == best_values[best_key]:
-                                val_str = f"\\textbf{{{val_str}}}"
+            # Add data for each model
+            for model in MODEL_ORDER:
+                value = row[model]
 
-                        line_parts.append(val_str)
+                # Format value
+                val_str = format_number(value, precision=precision)
+
+                # Bold if best, underline if second best
+                if bold_best and not pd.isna(value):
+                    best_key = (trend_type, period_type, component, metric)
+                    if best_key in best_values and value == best_values[best_key]:
+                        val_str = f"\\textbf{{{val_str}}}"
+                    elif best_key in second_best_values and value == second_best_values[best_key]:
+                        val_str = f"\\underline{{{val_str}}}"
+
+                line_parts.append(val_str)
 
             # Join with &
             line = ' & '.join(line_parts) + ' \\\\'
+
+            # Add spacing after MAE rows (except the last component in each period)
+            is_mae_row = metric == 'MAE'
+            component_position = (row_idx % rows_per_period) // (2 if include_mse else 1)
+            is_last_component_in_period = component_position == len(COMPONENTS) - 1
+
+            if is_mae_row and not is_last_component_in_period:
+                line += ' \\addlinespace[2pt]'
+
             latex_lines.append(line)
+
+            # Add cmidrule between periods within the same trend
+            if is_mae_row and is_last_component_in_period and row_idx < n_rows - 1:
+                # Count number of columns: 4 fixed + n_models
+                n_cols = 4 + len(MODEL_ORDER)
+                latex_lines.append(f' \\cmidrule(lr){{2-{n_cols}}}')
 
         # Add midrule between trend types
         if trend_idx < len(TREND_TYPES) - 1:
@@ -323,21 +330,25 @@ def generate_latex_table_wide(
     # Full LaTeX document
     # -----------------------------
 
+    # Build column spec: l (trend) + l (period) + l (component) + l (metric) + Y for each model
+    n_models = len(MODEL_ORDER)
+    col_spec = 'llll' + 'Y' * n_models
+
+    # Build model header
+    model_headers = [MODEL_DISPLAY_NAMES.get(m, m) for m in MODEL_ORDER]
+    model_header_line = ' & '.join(['\\textbf{Trend}', '\\textbf{Period}', '\\textbf{Comp.}', '\\textbf{Metric}'] + model_headers)
+
     latex_document = r"""
 \begin{table*}[!p]
 \centering
-\scriptsize
-\setlength{\tabcolsep}{2.5pt}
-\renewcommand{\arraystretch}{1.05}
+\footnotesize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.0}
 \caption{""" + caption + r"""}
-\label{tab:full_decomposition_results}
-\begin{tabular}{llcccccccccccccccccc}
+\label{tab:decomposition_transposed}
+\begin{tabularx}{\textwidth}{""" + col_spec + r"""}
 \toprule
-& & \multicolumn{6}{c}{\textbf{Fixed Period}} & \multicolumn{6}{c}{\textbf{Transitive Period}} & \multicolumn{6}{c}{\textbf{Variable Period}} \\
-\cmidrule(lr){3-8} \cmidrule(lr){9-14} \cmidrule(lr){15-20}
-\textbf{Trend} & \textbf{Model} & \multicolumn{2}{c}{\textbf{Trend}} & \multicolumn{2}{c}{\textbf{Seasonal}} & \multicolumn{2}{c}{\textbf{Residual}} & \multicolumn{2}{c}{\textbf{Trend}} & \multicolumn{2}{c}{\textbf{Seasonal}} & \multicolumn{2}{c}{\textbf{Residual}} & \multicolumn{2}{c}{\textbf{Trend}} & \multicolumn{2}{c}{\textbf{Seasonal}} & \multicolumn{2}{c}{\textbf{Residual}} \\
-\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10} \cmidrule(lr){11-12} \cmidrule(lr){13-14} \cmidrule(lr){15-16} \cmidrule(lr){17-18} \cmidrule(lr){19-20}
-& & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} & \textbf{MSE} & \textbf{MAE} \\
+""" + model_header_line + r""" \\
 \midrule
 """
 
@@ -345,7 +356,7 @@ def generate_latex_table_wide(
 
     latex_document += r"""
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table*}
 """
 
@@ -356,7 +367,7 @@ def generate_latex_table_wide(
     with open(output_file, "w") as f:
         f.write(latex_document)
 
-    print(f"✅ Wide-format LaTeX table saved to: {output_file}")
+    print(f"✅ Transposed LaTeX table saved to: {output_file}")
     return latex_document
 
 
@@ -436,17 +447,17 @@ def load_metrics_from_individual_files(metrics_dir='experiments/results/accuracy
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Convert experiment results CSV to wide-format LaTeX table'
+        description='Convert experiment results to transposed MAE-only LaTeX table'
     )
     parser.add_argument(
         'csv_file',
         nargs='?',
-        help='Path to CSV file or accuracy directory (default: experiments/results/synthetic/accuracy/)'
+        help='Path to CSV file or accuracy directory (default: experiments/results/accuracy/synthetic/)'
     )
     parser.add_argument(
         '-o', '--output',
-        default='experiments/results/latex_tables/table_decomposition_results_wide.tex',
-        help='Output LaTeX file (default: experiments/results/latex_tables/table_decomposition_results_wide.tex)'
+        default='experiments/results/latex_tables/table_decomposition_mae_transposed.tex',
+        help='Output LaTeX file (default: experiments/results/latex_tables/table_decomposition_mae_transposed.tex)'
     )
     parser.add_argument(
         '--no-bold',
@@ -461,8 +472,13 @@ def main():
     )
     parser.add_argument(
         '--caption',
-        default='Complete decomposition error metrics (MSE and MAE) across all synthetic datasets.',
+        default='Decomposition errors (MSE/MAE) across synthetic datasets.',
         help='Table caption'
+    )
+    parser.add_argument(
+        '--mae-only',
+        action='store_true',
+        help='Include only MAE (exclude MSE)'
     )
 
     args = parser.parse_args()
@@ -489,7 +505,7 @@ def main():
         df = load_metrics_from_individual_files('experiments/results/accuracy/synthetic')
 
         if df is None:
-            print("❌ No metric files found in experiments/results/synthetic/accuracy/")
+            print("❌ No metric files found in experiments/results/accuracy/synthetic/")
             print("   Please run experiments first.")
             sys.exit(1)
 
@@ -501,12 +517,13 @@ def main():
 
     # Generate LaTeX table
     try:
-        generate_latex_table_wide(
+        generate_latex_table_transposed(
             df,
             output_file=args.output,
             caption=args.caption,
             bold_best=not args.no_bold,
-            precision=args.precision
+            precision=args.precision,
+            include_mse=not args.mae_only
         )
 
         print(f"\n📄 To compile the LaTeX:")

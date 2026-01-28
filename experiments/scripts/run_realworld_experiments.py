@@ -44,19 +44,17 @@ def main():
     )
     args = parser.parse_args()
 
-    # Configuration path
-    if args.config:
-        config_path = args.config
-    else:
-        config_path = str(project_root / "experiments" / "configs" / "real_world_experiments.yaml")
+    # Configuration path (optional - runner uses model configs by default)
+    config_path = args.config if args.config else None
 
     # Output directory
     if args.output_dir:
         output_dir = args.output_dir
     else:
-        output_dir = str(project_root / "experiments" / "results" / "real_world")
+        output_dir = str(project_root / "experiments" / "results")
 
     # Initialize runner
+    # Model parameters are loaded from experiments/configs/models/*.yaml
     runner = RealWorldExperimentRunner(
         config_path=config_path,
         output_dir=output_dir
@@ -64,7 +62,7 @@ def main():
 
     # Run experiments with filtering
     # Results will be saved to:
-    # - experiments/results/real_world/decompositions/ (JSON files)
+    # - experiments/results/decompositions/real_world/{dataset}/ (JSON files)
     try:
         runner.run_all_experiments(
             dataset_filter=args.datasets,

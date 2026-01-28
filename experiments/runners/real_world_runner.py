@@ -3,6 +3,7 @@ Real-world experiment runner for LGTD evaluation.
 """
 
 import numpy as np
+import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
@@ -27,20 +28,61 @@ class RealWorldExperimentRunner(BaseExperiment):
     - Running multiple decomposition methods
     - Limiting to first 2500 points for consistency
     - Saving results
+    - Loading model parameters from experiments/configs/models/*.yaml
     """
 
     # Real-world datasets don't have ground truth
     MAX_POINTS = 2500
 
-    def __init__(self, config_path: str = None, output_dir: str = 'results/real_world'):
+    def __init__(self, config_path: str = None, output_dir: str = 'results'):
         """
         Initialize real-world experiment runner.
 
         Args:
-            config_path: Path to configuration YAML file
-            output_dir: Directory to save results
+            config_path: Path to configuration YAML file (optional, for datasets config)
+            output_dir: Directory to save results (base directory)
         """
         super().__init__(output_dir=output_dir, config_path=config_path)
+
+        # Load model configurations from experiments/configs/models/
+        self.models_config = self._load_model_configs()
+
+    def _load_model_configs(self) -> Dict[str, Dict]:
+        """Load all model configurations from experiments/configs/models/."""
+        project_root = Path(__file__).parent.parent.parent
+        models_dir = project_root / "experiments" / "configs" / "models"
+
+        models = {}
+        for model_file in models_dir.glob("*.yaml"):
+            with open(model_file, 'r') as f:
+                model_config = yaml.safe_load(f)
+                model_name = model_config['model_name']
+                models[model_name] = model_config
+
+        return models
+
+    def get_model_params(self, model_name: str, dataset_name: str) -> Dict[str, Any]:
+        """
+        Get model parameters for a specific dataset from model config files.
+
+        Args:
+            model_name: Name of the model
+            dataset_name: Name of the dataset
+
+        Returns:
+            Dictionary of model parameters
+        """
+        if model_name not in self.models_config:
+            raise ValueError(f"Model {model_name} not found in configurations")
+
+        model_config = self.models_config[model_name]
+
+        # Get dataset-specific parameters
+        dataset_params = model_config.get('dataset_params', {})
+        if dataset_name not in dataset_params:
+            raise ValueError(f"No parameters found for {model_name} on dataset {dataset_name}")
+
+        return dataset_params[dataset_name].copy()
 
     def load_dataset(self, dataset_name: str, **loader_params) -> Dict[str, np.ndarray]:
         """
@@ -156,7 +198,7 @@ class RealWorldExperimentRunner(BaseExperiment):
         self,
         dataset_name: str,
         loader_params: Dict[str, Any],
-        methods_to_run: Optional[Dict[str, Any]] = None
+        methods_to_run: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         Run experiment on a single real-world dataset.
@@ -164,7 +206,7 @@ class RealWorldExperimentRunner(BaseExperiment):
         Args:
             dataset_name: Name of the dataset
             loader_params: Parameters for loading the dataset
-            methods_to_run: Specific methods to run (None = all enabled from config)
+            methods_to_run: Specific methods to run (None = all enabled from model configs)
 
         Returns:
             Dictionary with results
@@ -180,7 +222,6 @@ class RealWorldExperimentRunner(BaseExperiment):
 
         # Run methods
         results = {}
-        methods_config = methods_to_run if methods_to_run is not None else self.config['methods']
 
         method_runners = {
             'lgtd': self.run_lgtd,
@@ -196,19 +237,34 @@ class RealWorldExperimentRunner(BaseExperiment):
             'astd_online': self.run_astd_online
         }
 
-        for method_name, method_config in methods_config.items():
-            if not method_config.get('enabled', True):
+        # Determine which models to run
+        if methods_to_run is not None:
+            models_to_run = methods_to_run
+        else:
+            # Run all enabled models from model configs
+            models_to_run = [name for name, config in self.models_config.items()
+                           if config.get('enabled', True)]
+
+        for method_name in models_to_run:
+            if method_name not in method_runners:
+                print(f"  ✗ Skipping unknown method: {method_name}")
                 continue
 
-            if method_name in method_runners:
+            try:
+                # Get model parameters from model config file
+                params = self.get_model_params(method_name, dataset_name)
+
                 result = self.run_method(
                     method_name.upper(),
                     method_runners[method_name],
                     dataset,
-                    method_config.get('params', {})
+                    params
                 )
                 if result is not None:
-                    results[method_name.upper()] = result
+                    results[method_name] = result
+            except ValueError as e:
+                print(f"  ✗ Skipping {method_name}: {e}")
+                continue
 
         return {
             'dataset': {'name': dataset_name, 'y': dataset['y']},
@@ -232,7 +288,7 @@ class RealWorldExperimentRunner(BaseExperiment):
         """
         import json
 
-        # Create dataset subdirectory with real_world prefix
+        # Create dataset subdirectory under decompositions/real_world/
         dataset_dir = self.output_dir / "decompositions" / "real_world" / dataset_name
         dataset_dir.mkdir(parents=True, exist_ok=True)
 
@@ -251,8 +307,8 @@ class RealWorldExperimentRunner(BaseExperiment):
                 'residual': result['residual'].tolist()
             }
 
-            # Save as JSON
-            output_path = dataset_dir / f"{model_name}.json"
+            # Save as JSON with lowercase filename
+            output_path = dataset_dir / f"{model_name.lower()}.json"
             with open(output_path, 'w') as f:
                 json.dump(decomposition_data, f, indent=2)
 
@@ -276,14 +332,36 @@ class RealWorldExperimentRunner(BaseExperiment):
         print("STARTING REAL-WORLD EXPERIMENTS")
         print("="*70)
 
-        # Filter datasets and methods
-        datasets_to_run = self.filter_datasets(dataset_filter)
-        methods_to_run = self.filter_methods(method_filter)
+        # Filter datasets
+        datasets_to_run = self.filter_datasets(dataset_filter) if self.config else []
+
+        # If no config file provided, use datasets from model configs
+        if not datasets_to_run:
+            # Get datasets from any model config (all should have the same datasets)
+            if self.models_config:
+                first_model = next(iter(self.models_config.values()))
+                dataset_names = list(first_model.get('dataset_params', {}).keys())
+                # Filter to real-world datasets only
+                real_world_datasets = ['ETTh1', 'ETTh2', 'Sunspot']
+                dataset_names = [d for d in dataset_names if d in real_world_datasets]
+
+                if dataset_filter:
+                    dataset_names = [d for d in dataset_names if d in dataset_filter]
+
+                datasets_to_run = [{'name': name, 'loader_params': {}} for name in dataset_names]
+
+        # Filter methods
+        if method_filter:
+            methods_to_run = [m.lower() for m in method_filter]
+        else:
+            # Get all enabled models from model configs
+            methods_to_run = [name for name, config in self.models_config.items()
+                            if config.get('enabled', True)]
 
         if dataset_filter:
             print(f"Running on datasets: {[d['name'] for d in datasets_to_run]}")
         if method_filter:
-            print(f"Running methods: {list(methods_to_run.keys())}")
+            print(f"Running methods: {methods_to_run}")
 
         all_results = {}
 
@@ -299,7 +377,7 @@ class RealWorldExperimentRunner(BaseExperiment):
             all_results[dataset_name] = experiment_result
 
             # Save decomposition components for plotting
-            if save_results and self.config['output'].get('save_decompositions', True):
+            if save_results:
                 self.save_decomposition_components(
                     dataset_name,
                     experiment_result

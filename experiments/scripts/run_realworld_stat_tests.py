@@ -521,8 +521,8 @@ def main():
     parser.add_argument(
         '--ljung_box_lags',
         type=str,
-        default='10,20,30',
-        help='Comma-separated list of lags for Ljung-Box test (default: 10,20,30)'
+        default='10,20,30,40,50',
+        help='Comma-separated list of lags for Ljung-Box test (default: 10,20,30,40,50)'
     )
 
     parser.add_argument(

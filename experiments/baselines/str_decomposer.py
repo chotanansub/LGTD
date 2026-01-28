@@ -30,18 +30,18 @@ class STRDecomposer:
         seasonal_lambda: float = 100.0,
         robust: bool = False,
         auto_params: bool = False,
-        n_trials: int = 20
+        n_trials: int = 10
     ):
         """
         Initialize STR decomposer.
 
         Args:
             seasonal_periods: List of seasonal periods (e.g., [12] for monthly data)
-            trend_lambda: Smoothing parameter for trend (higher = smoother)
-            seasonal_lambda: Smoothing parameter for seasonal components
-            robust: Use robust regression (not yet implemented in strpy)
-            auto_params: Use automatic parameter selection via cross-validation
-            n_trials: Number of trials for automatic parameter selection
+            trend_lambda: Smoothing parameter for trend (higher = smoother, default: 1000.0)
+            seasonal_lambda: Smoothing parameter for seasonal components (default: 100.0)
+            robust: Use robust regression (not yet implemented in strpy, default: False)
+            auto_params: Use automatic parameter selection via cross-validation (default: False)
+            n_trials: Number of trials for automatic parameter selection (default: 10)
         """
         self.seasonal_periods = seasonal_periods or [12]
         self.trend_lambda = trend_lambda

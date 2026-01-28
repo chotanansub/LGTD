@@ -1,235 +1,226 @@
 #!/usr/bin/env python3
 """
-Generate contour plots for LGTD parameter sensitivity analysis.
-
-This script creates contour plots showing how MAE/MSE varies with window_size
-and percentile_error parameters for each synthetic dataset.
-
-Usage:
-    python plot_sensitivity_contour.py
+Generate contour plots for LGTD parameter sensitivity analysis for MAE and MSE.
+Includes a 3x3 grid with Row (Trend) and Column (Periodicity) headers.
 """
 
 import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+from matplotlib.lines import Line2D
 from pathlib import Path
 
-# Add project root to path
+# --- Academic Style Configuration ---
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.size": 10,
+    "axes.titlesize": 16,
+    "axes.labelsize": 12,
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "legend.fontsize": 12,
+    "figure.dpi": 300,
+    "mathtext.fontset": "cm"
+})
+
 project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
-
-# Configuration
 SENSITIVITY_DIR = project_root / "experiments" / "results" / "sensitivity"
-OUTPUT_DIR = project_root / "experiments" / "results" / "sensitivity" / "figures"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+BASE_OUTPUT = project_root / "experiments" / "results" / "sensitivity" / "contour_plot"
 
+DEFAULT_PARAM_MARKER_COLOR = '#ff00f2'
+DEF_W, DEF_P = 5, 50
+
+def setup_dirs(metric):
+    """Creates specific directories for the given metric."""
+    metric_dir = BASE_OUTPUT / metric
+    log_dir = metric_dir / "logscale"
+    clip_dir = metric_dir / "clip"
+    for d in [log_dir, clip_dir]:
+        d.mkdir(parents=True, exist_ok=True)
+    return log_dir, clip_dir
 
 def load_data(dataset_name):
-    """Load sensitivity test results for a dataset."""
     csv_path = SENSITIVITY_DIR / f"{dataset_name}_sensitivity.csv"
     return pd.read_csv(csv_path)
 
+def _plot_markers_and_line(ax, best_x, best_y, best_val, def_val, mode='individual'):
+    """Renders markers and a connecting line with percentage difference."""
+    base_s = 500 if mode == 'individual' else 700
+    
+    ax.plot([DEF_W, best_x], [DEF_P, best_y], color='black', 
+            linewidth=5, alpha=0.5, zorder=14)
+    ax.plot([DEF_W, best_x], [DEF_P, best_y], color='white', linestyle='--',
+            linewidth=3, alpha=1, zorder=15)
+    
+    # if def_val is not None and def_val != 0:
+    #     diff_pct = ((def_val - best_val) / def_val) * 100
+    #     mid_x = (DEF_W + best_x) / 2
+    #     mid_y = (DEF_P + best_y) / 2
+    #     ax.text(mid_x, mid_y, f"{diff_pct:+.1f}%", color='black', fontweight='bold',
+    #             fontsize=8 if mode == 'combined' else 10, ha='center', va='center',
+    #             zorder=30, bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=1))
 
-def create_contour_plot(dataset_name, metric='mae'):
-    """Create a contour plot for a single dataset."""
-    print(f"  Creating {dataset_name} ({metric.upper()})...")
+    ax.scatter([best_x], [best_y], c='white', s=base_s * 2.5, marker='*', alpha=0.8, zorder=20)
+    ax.scatter([best_x], [best_y], c='black', s=base_s * 1.5, marker='*', alpha=1.0, zorder=21)
+    best_m = ax.scatter([best_x], [best_y], c='lime', s=base_s, marker='*', edgecolors='none', zorder=22)
 
+    ax.scatter([DEF_W], [DEF_P], c='white', s=base_s * 0.4, marker='o', alpha=0.8, zorder=20)
+    def_m = ax.scatter([DEF_W], [DEF_P], c=DEFAULT_PARAM_MARKER_COLOR, s=base_s * 0.2, marker='o', 
+                        edgecolors='black', linewidths=1, zorder=21)
+    
+    return [best_m, def_m]
+
+def get_robust_vmax(Z):
+    q1, q3 = np.percentile(Z, [25, 75])
+    iqr = q3 - q1
+    vmax = q3 + 3 * iqr
+    if vmax <= np.min(Z) or np.isclose(vmax, np.min(Z)):
+        vmax = np.percentile(Z, 95)
+    return min(vmax, np.max(Z))
+
+def create_contour_plot(dataset_name, metric='mae', mode='log', dirs=None):
     df = load_data(dataset_name)
-    df_valid = df[df['valid'] == 1].copy()
+    df_v = df[df['valid'] == 1]
+    if df_v.empty: return
 
-    if len(df_valid) == 0:
-        print(f"    ✗ No valid results, skipping...")
-        return
+    pivot = df_v.pivot(index='percentile_error', columns='window_size', values=metric)
+    X, Y = np.meshgrid(pivot.columns, pivot.index)
+    Z = pivot.values
+    
+    fig, ax = plt.subplots(figsize=(7, 7))
+    log_dir, clip_dir = dirs
+    
+    if mode == 'log':
+        vmin_val = max(Z.min(), 1e-3)
+        norm = LogNorm(vmin=vmin_val, vmax=Z.max())
+        lev_exp = np.linspace(np.log10(vmin_val), np.log10(Z.max()), 30)
+        levels = np.power(10, lev_exp)
+        cp = ax.contourf(X, Y, Z, levels=levels, norm=norm, cmap='RdYlBu_r', extend='both')
+        out_path = log_dir / f"{dataset_name}_{metric}_log.png"
+    else:
+        vmax = get_robust_vmax(Z)
+        cp = ax.contourf(X, Y, Z, levels=30, vmax=vmax, cmap='RdYlBu_r', extend='max')
+        out_path = clip_dir / f"{dataset_name}_{metric}_clip.png"
 
-    # Prepare data
-    window_sizes = sorted(df_valid['window_size'].unique())
-    percentile_errors = sorted(df_valid['percentile_error'].unique())
-    X, Y = np.meshgrid(window_sizes, percentile_errors)
-    Z = np.full((len(percentile_errors), len(window_sizes)), np.nan)
+    ax.contour(X, Y, Z, levels=15, colors='black', linewidths=0.3, alpha=0.2)
+    
+    best = df_v.loc[df_v[metric].idxmin()]
+    def_row = df_v[(df_v['window_size'] == DEF_W) & (df_v['percentile_error'] == DEF_P)]
+    def_val = def_row[metric].values[0] if not def_row.empty else None
 
-    for i, pe in enumerate(percentile_errors):
-        for j, ws in enumerate(window_sizes):
-            row = df_valid[(df_valid['window_size'] == ws) &
-                          (df_valid['percentile_error'] == pe)]
-            if len(row) > 0:
-                Z[i, j] = row[metric].values[0]
+    _plot_markers_and_line(ax, best['window_size'], best['percentile_error'], best[metric], def_val, mode='individual')
 
-    # Find best parameters
-    best_idx = df_valid[metric].idxmin()
-    best_ws = df_valid.loc[best_idx, 'window_size']
-    best_pe = df_valid.loc[best_idx, 'percentile_error']
-    best_val = df_valid.loc[best_idx, metric]
-
-    # Create plot
-    _, ax = plt.subplots(figsize=(10, 8))
-    contour_filled = ax.contourf(X, Y, Z, levels=20, cmap='viridis', alpha=0.9)
-    contour_lines = ax.contour(X, Y, Z, levels=20, colors='black',
-                               linewidths=0.5, alpha=0.3)
-    ax.clabel(contour_lines, inline=True, fontsize=8, fmt='%.2f')
-
-    # Mark data points and best
-    ax.scatter(df_valid['window_size'], df_valid['percentile_error'],
-              c='red', s=20, alpha=0.5, marker='o', edgecolors='darkred',
-              linewidths=0.5, label='Data points')
-    ax.scatter([best_ws], [best_pe], c='lime', s=200, marker='*',
-              edgecolors='darkgreen', linewidths=2,
-              label=f'Best: ws={best_ws:.0f}, pe={best_pe:.0f}', zorder=5)
-
-    # Formatting
-    cbar = plt.colorbar(contour_filled, ax=ax, label=metric.upper())
-    cbar.ax.tick_params(labelsize=10)
-    ax.set_xlabel('Window Size', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Percentile Error', fontsize=12, fontweight='bold')
-    ax.set_title(f'{dataset_name.upper()}: {metric.upper()} vs Parameters\n'
-                f'Best: ws={best_ws:.0f}, pe={best_pe:.0f}, '
-                f'{metric.upper()}={best_val:.4f}',
-                fontsize=14, fontweight='bold', pad=20)
-    ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
-    ax.legend(loc='upper right', fontsize=10, framealpha=0.9)
-    ax.set_xticks(window_sizes)
-    ax.set_yticks(percentile_errors)
-
-    plt.tight_layout()
-    output_path = OUTPUT_DIR / f"{dataset_name}_{metric}_contour.png"
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    ax.set_box_aspect(1) 
+    cbar = plt.colorbar(cp, fraction=0.046, pad=0.1)
+    cbar.ax.set_title(metric.upper(), fontsize=10, pad=10, fontweight='normal')
+    
+    ax.set_xlabel('Window Size ($W$)')
+    ax.set_ylabel('Percentile Error ($p$)', labelpad=10)
+    ax.set_title(f"{dataset_name.upper()} ({metric.upper()})", pad=15)
+    
+    legend_handles = [
+        Line2D([0], [0], marker='*', color='w', markerfacecolor='lime', markersize=14, 
+               label=f'Optimal: {best[metric]:.4f}', markeredgecolor='black'),
+        Line2D([0], [0], marker='o', color='w', markerfacecolor=DEFAULT_PARAM_MARKER_COLOR, markersize=9, 
+               label=r'Default ($W=5$, $p=50^{th}$)', markeredgecolor='black'),
+    ]
+    
+    ax.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, -0.15), 
+              ncol=3, frameon=True, fontsize=9.5, columnspacing=0.8)
+    
+    plt.savefig(out_path, bbox_inches='tight')
     plt.close()
 
-    print(f"    ✓ Saved to: {output_path}")
-
-
-def create_combined_subplot(dataset_names, metric='mae'):
-    """Create a subplot grid showing all datasets."""
-    print(f"\n  Creating combined subplot ({metric.upper()})...")
-
-    fig, axes = plt.subplots(3, 3, figsize=(18, 16))
+def create_combined_subplot(dataset_names, metric='mae', mode='log', dirs=None):
+    cols = 3
+    rows = (len(dataset_names) + cols - 1) // cols
+    fig, axes = plt.subplots(rows, cols, figsize=(18, 6 * rows)) 
     axes = axes.flatten()
+    log_dir, clip_dir = dirs
 
-    # Find global min/max for consistent color scale
-    all_data = {}
-    global_min, global_max = float('inf'), float('-inf')
+    col_headers = ['Fixed-Period', 'Transitive-Period', 'Variable-Period']
+    row_headers = ['Linear', 'Inverted-V', 'Piecewise']
 
-    for dataset_name in dataset_names:
-        try:
-            df = load_data(dataset_name)
-            df_valid = df[df['valid'] == 1]
-            if len(df_valid) > 0:
-                all_data[dataset_name] = df_valid
-                global_min = min(global_min, df_valid[metric].min())
-                global_max = max(global_max, df_valid[metric].max())
-        except FileNotFoundError:
-            print(f"    ⚠ Skipping {dataset_name}: file not found")
+    for i, dname in enumerate(dataset_names):
+        ax = axes[i]
+        df = load_data(dname)[lambda x: x['valid'] == 1]
+        pivot = df.pivot(index='percentile_error', columns='window_size', values=metric)
+        X, Y = np.meshgrid(pivot.columns, pivot.index)
+        Z = pivot.values
 
-    plot_levels = np.linspace(global_min, global_max, 15)
+        if mode == 'log':
+            vmin_val = max(Z.min(), 1e-3)
+            norm = LogNorm(vmin=vmin_val, vmax=Z.max())
+            lev_exp = np.linspace(np.log10(vmin_val), np.log10(Z.max()), 25)
+            levels = np.power(10, lev_exp)
+            cp = ax.contourf(X, Y, Z, levels=levels, norm=norm, cmap='RdYlBu_r', extend='both')
+        else:
+            vmax = get_robust_vmax(Z)
+            cp = ax.contourf(X, Y, Z, levels=25, vmax=vmax, cmap='RdYlBu_r', extend='max')
 
-    # Create plots
-    for idx, dataset_name in enumerate(dataset_names):
-        ax = axes[idx]
+        ax.set_box_aspect(1) 
+        cbar = plt.colorbar(cp, ax=ax, fraction=0.046, pad=0.1)
+        cbar.ax.set_title(metric.upper(), fontsize=10, pad=10, fontweight='normal')
+        cbar.ax.tick_params(labelsize=9)
 
-        if dataset_name not in all_data:
-            ax.axis('off')
-            continue
+        best = df.loc[df[metric].idxmin()]
+        def_row = df[(df['window_size'] == DEF_W) & (df['percentile_error'] == DEF_P)]
+        def_val = def_row[metric].values[0] if not def_row.empty else None
 
-        df_valid = all_data[dataset_name]
-        window_sizes = sorted(df_valid['window_size'].unique())
-        percentile_errors = sorted(df_valid['percentile_error'].unique())
-        X, Y = np.meshgrid(window_sizes, percentile_errors)
-        Z = np.full((len(percentile_errors), len(window_sizes)), np.nan)
+        _plot_markers_and_line(ax, best['window_size'], best['percentile_error'], best[metric], def_val, mode='combined')
+        
+        ax.set_title(f"{dname.upper()}", pad=10, fontsize=12, alpha=0.6)
+        
+        if i < cols:
+            ax.annotate(col_headers[i], xy=(0.5, 1.25), xycoords='axes fraction',
+                        ha='center', va='baseline', fontsize=20, fontweight='bold')
 
-        for i, pe in enumerate(percentile_errors):
-            for j, ws in enumerate(window_sizes):
-                row = df_valid[(df_valid['window_size'] == ws) &
-                              (df_valid['percentile_error'] == pe)]
-                if len(row) > 0:
-                    Z[i, j] = row[metric].values[0]
+        if i % cols == 0:
+            row_idx = i // cols
+            ax.annotate(row_headers[row_idx], xy=(-0.35, 0.5), xycoords='axes fraction',
+                        ha='right', va='center', fontsize=20, fontweight='bold', rotation=90)
+            ax.set_ylabel("Percentile Error ($p$)", labelpad=12)
+        
+        if i >= (rows-1)*cols: 
+            ax.set_xlabel("Window Size ($W$)", labelpad=10)
 
-        # Create contour
-        contour_filled = ax.contourf(X, Y, Z, levels=plot_levels,
-                                    cmap='viridis', alpha=0.9,
-                                    vmin=global_min, vmax=global_max)
-        ax.contour(X, Y, Z, levels=plot_levels, colors='black',
-                  linewidths=0.3, alpha=0.2)
-
-        # Find and mark best
-        best_idx = df_valid[metric].idxmin()
-        best_ws = df_valid.loc[best_idx, 'window_size']
-        best_pe = df_valid.loc[best_idx, 'percentile_error']
-        best_val = df_valid.loc[best_idx, metric]
-
-        ax.scatter([best_ws], [best_pe], c='lime', s=150, marker='*',
-                  edgecolors='darkgreen', linewidths=1.5, zorder=5)
-
-        # Formatting
-        ax.set_title(f'{dataset_name}\nBest: ws={best_ws:.0f}, pe={best_pe:.0f}, '
-                    f'{metric.upper()}={best_val:.3f}',
-                    fontsize=10, fontweight='bold')
-        if idx % 3 == 0:
-            ax.set_ylabel('Percentile Error', fontsize=9)
-        if idx >= 6:
-            ax.set_xlabel('Window Size', fontsize=9)
-        ax.grid(True, alpha=0.2, linestyle='--', linewidth=0.5)
-        ax.set_xticks(window_sizes[::2])
-        ax.set_yticks(percentile_errors[::2])
-        ax.tick_params(labelsize=8)
-
-    # Remove unused subplots
-    for idx in range(len(dataset_names), len(axes)):
-        axes[idx].axis('off')
-
-    # Add shared colorbar
-    fig.subplots_adjust(right=0.92)
-    cbar_ax = fig.add_axes([0.94, 0.15, 0.02, 0.7])
-    cbar = fig.colorbar(contour_filled, cax=cbar_ax, label=metric.upper())
-    cbar.ax.tick_params(labelsize=10)
-
-    fig.suptitle(f'LGTD Parameter Sensitivity Analysis: {metric.upper()} Across Datasets',
-                fontsize=16, fontweight='bold', y=0.98)
-
-    plt.tight_layout(rect=[0, 0, 0.92, 0.96])
-    output_path = OUTPUT_DIR / f"all_datasets_{metric}_contour.png"
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    for j in range(i + 1, len(axes)): 
+        fig.delaxes(axes[j])
+        
+    global_legend_handles = [
+        Line2D([0], [0], marker='*', color='w', markerfacecolor='lime', markersize=24, 
+               label='Optimal Configuration', markeredgecolor='black'),
+        Line2D([0], [0], marker='o', color='w', markerfacecolor=DEFAULT_PARAM_MARKER_COLOR, markersize=16, 
+               label=r'Default ($W=5$, $p=50^{th}$)', markeredgecolor='black'),
+    ]
+    
+    fig.legend(handles=global_legend_handles, loc='lower center', 
+               bbox_to_anchor=(0.5, 0.02), ncol=3, fontsize=18, frameon=True)
+    
+    plt.tight_layout(rect=[0.05, 0.08, 0.98, 0.92]) 
+    
+    folder = log_dir if mode == 'log' else clip_dir
+    plt.savefig(folder / f"combined_{metric}_{mode}.png", bbox_inches='tight')
     plt.close()
-
-    print(f"    ✓ Saved combined plot to: {output_path}")
-
 
 def main():
-    """Generate all contour plots."""
-    print("=" * 70)
-    print("Generating LGTD Parameter Sensitivity Contour Plots")
-    print("=" * 70)
-
-    # Find all datasets
     csv_files = list(SENSITIVITY_DIR.glob("*_sensitivity.csv"))
-    dataset_names = sorted([f.stem.replace('_sensitivity', '') for f in csv_files])
+    datasets = sorted([f.stem.replace('_sensitivity', '') for f in csv_files])
 
-    print(f"Datasets: {', '.join(dataset_names)}")
-    print(f"Output directory: {OUTPUT_DIR}\n")
+    if not datasets:
+        print(f"No CSV files found in {SENSITIVITY_DIR}")
+        return
 
-    # Generate all plots
     for metric in ['mae', 'mse']:
-        print(f"\n{metric.upper()} Plots:")
-        print("-" * 70)
-
-        # Individual plots
-        for dataset_name in dataset_names:
-            try:
-                create_contour_plot(dataset_name, metric)
-            except Exception as e:
-                print(f"    ✗ Error: {dataset_name}: {str(e)}")
-
-        # Combined plot
-        if len(dataset_names) > 1:
-            try:
-                create_combined_subplot(dataset_names, metric)
-            except Exception as e:
-                print(f"    ✗ Error creating combined plot: {str(e)}")
-
-    print("\n" + "=" * 70)
-    print("ALL PLOTS COMPLETED")
-    print("=" * 70)
-    print(f"Plots saved to: {OUTPUT_DIR}")
-
+        dirs = setup_dirs(metric)
+        for mode in ['log', 'clip']:
+            print(f"Generating {metric.upper()} {mode.upper()} visualization...")
+            for d in datasets:
+                create_contour_plot(d, metric=metric, mode=mode, dirs=dirs)
+            if len(datasets) > 1:
+                create_combined_subplot(datasets, metric=metric, mode=mode, dirs=dirs)
 
 if __name__ == "__main__":
     main()

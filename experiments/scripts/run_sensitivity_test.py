@@ -43,8 +43,8 @@ class SensitivityTest:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Parameter ranges
-        self.window_sizes = list(range(2, 16))  # 2-15
-        self.percentile_errors = [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
+        self.window_sizes = list(range(2, 30))  
+        self.percentile_errors = list(range(1, 100))
 
     def load_dataset_config(self, dataset_name: str) -> Dict[str, Any]:
         """

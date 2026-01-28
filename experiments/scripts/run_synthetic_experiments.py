@@ -39,19 +39,20 @@ def main():
     )
     args = parser.parse_args()
 
-    # Configuration path
+    # Configuration path - use datasets.yaml by default
     if args.config:
         config_path = args.config
     else:
-        config_path = str(project_root / "experiments" / "configs" / "synthetic_experiments.yaml")
+        config_path = str(project_root / "experiments" / "configs" / "datasets.yaml")
 
     # Output directory
     if args.output_dir:
         output_dir = args.output_dir
     else:
-        output_dir = str(project_root / "experiments" / "results" / "synthetic")
+        output_dir = str(project_root / "experiments" / "results")
 
     # Initialize runner
+    # Model parameters are loaded from experiments/configs/models/*.yaml
     runner = SyntheticExperimentRunner(
         config_path=config_path,
         output_dir=output_dir
@@ -59,8 +60,7 @@ def main():
 
     # Run experiments with filtering
     # Results will be saved to:
-    # - experiments/results/decompositions/synthetic/ (JSON files)
-    # - experiments/results/figures/synthetic/ (plots)
+    # - experiments/results/decompositions/synthetic/{dataset}/ (JSON files)
     # - experiments/results/accuracy/synthetic/ (CSV files)
     try:
         runner.run_all_experiments(
